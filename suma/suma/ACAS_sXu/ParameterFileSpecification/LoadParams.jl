@@ -15,9 +15,9 @@ meters_to_feet = geoutils.meters_to_feet
 # Loads JSON from a file into Dict-based structure.
 # fileName -- JSON file path.
 function LoadJSON(fileName)
-    open(fileName) do f
-        return JSON.parse(join(readlines(f), ""))
-    end
+    raw_data = JSON.parsefile(fileName)
+    # 将 JSON.Object 强制转为标准的 Dict{String, Any}
+    return Dict{String, Any}(string(k) => v for (k,v) in raw_data)
 end
 
 #
