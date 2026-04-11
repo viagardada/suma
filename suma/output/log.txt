@@ -1,0 +1,9 @@
+[2023-05-30 18:21:00,912|CASCARA|I]: CASCARA 2.26.1 log started at 2023-05-30 18:21:00.912390.
+[2023-05-30 18:21:23,617|CASCARA.Model(Model)|W]: 
+# Command history BEGIN.
+@eval Main import Base.MainInclude: eval, include
+include("C:\\Users\\e182332\\AppData\\Local\\Programs\\Python\\Python39\\lib\\site-packages\\juliainterpreter\\JIJSON.jl")
+push!(LOAD_PATH, "C:\\Redmond\\CZ2000\\VC\\TCAS-Evolution\\suma\\suma\\ACAS_sXu")
+import ACAS_sXu
+Model_52924768_stm_0 = ACAS_sXu.STM("./LookupTables/DO-396_paramsfile_acassxu_origami_20220908.txt")
+# Command history END.

@@ -1,0 +1,372 @@
+variables:
+  CI_ADDITIONAL_TESTS:
+    description: >-
+      If set to "true", enable additional test jobs for Correlation
+      encounter scenarios from TestGroup99.
+    value: 'false'
+  CI_INVALIDATE_CACHES:
+    description: >-
+      If set to "true", force re-download of cached build and/or runtime
+      data.
+    value: 'false'
+  TWINE_REPOSITORY_URL:
+    description: >-
+      PyPI repository used for deployment with Twine.
+      Typically set as a project/group variable.
+  TWINE_USERNAME:
+    description: >-
+      Deployment PyPI repository username.
+      Typically set as a project/group variable.
+  TWINE_PASSWORD:
+    description: >-
+      Deployment PyPI repository password.
+      Typically set as a project/group variable.
+  GENERIC_REPOSITORY_URL:
+    description: >-
+      Generic repository used to download any build or runtime data as
+      well as used for bare Julia deployment. Used with curl and the
+      provided credentials. Must support upload via PUT method.
+      Typically set as a project/group variable.
+  GENERIC_USERNAME:
+    description: >-
+      Generic repository username.
+      Typically set as a project/group variable.
+  GENERIC_PASSWORD:
+    description: >-
+      Generic repository password.
+      Typically set as a project/group variable.
+  JULIA_REPOSITORY_URL:
+    description: >-
+      A repository used to download Julia runtime packages.
+      Typically set as a project/group variable.
+  PIP_EXTRA_INDEX_URL:
+    description: >-
+      Extra pip index URLs allowing it to install the required
+      dependencies. Other pip variables may (need to) be added as well.
+      Typically set as a project/group variable.
+  PIP_CACHE_DIR:
+    description: >-
+      Cache location for pip. To speed up the job execution, runner's
+      local cache directory is used by default.
+    value: '/cache/pip'
+  PIP_DISABLE_PIP_VERSION_CHECK:
+    description: >-
+      A pip customization for use in CI/CD.
+    value: 'true'
+  PIP_ROOT_USER_ACTION:
+    description: >-
+      A pip customization for use in CI/CD.
+    value: ignore
+  PIP_PROGRESS_BAR:
+    description: >-
+      A pip customization for use in CI/CD.
+    value: 'off'
+
+stages:
+  - build
+  - test
+  - deploy
+
+default:
+  image: python:3.11  # Used instead of "slim" due curl unavailability.
+  # All jobs run on x86_64 Linux, unless otherwise specified.
+  tags:
+    - Linux
+    - x86_64
+
+.additional_test_template: &additional_test_template
+  # A template for an additional test job.
+  rules:
+    - if: '$CI_ADDITIONAL_TESTS =~ /true/i'
+
+.build_template: &build_template
+  # Build and pack the distribution. Keep the packaged wheel(s)/archives for tests/deployment (no lookup tables).
+  stage: build
+  artifacts:
+    paths:
+      - dist/*.whl
+    # Expiration is necessary to avoid clogging GitLab server with too many artifacts.
+    # If the test take too much time, expiration time can be increased.
+    expire_in: 1 day
+
+build_acas_sxu_suma:
+  <<: *build_template
+  script:
+    - pip install -U 'apis>=3,<4'
+    # The following will try to "inject" tag name as package __version__.
+    - '[[ -n "${CI_COMMIT_TAG}" ]] && python -m apis inject --skip-bad-format "./suma/__init__.py" "${CI_COMMIT_TAG}"'
+    # If the the distribution needs some dependencies in order to be built, install them here.
+    - pip install "CASCARA>=2,<3"
+    - python setup_acas_sxu_suma.py bdist_wheel
+
+build_acas_sxu_suma_test:
+  <<: *build_template
+  script:
+    - bash ./cache-test-suite.sh
+    - mkdir -p ./suma/test/TestData
+    - ln -s /cache/test_testsuite ./suma/test/TestData/test_testsuite
+    - pip install -U 'apis>=3,<4'
+    - '[[ -n "${CI_COMMIT_TAG}" ]] && python -m apis inject --skip-bad-format "./suma/test/__init__.py" "${CI_COMMIT_TAG}"'
+    - pip install "CASCARA>=2,<3"
+    - python setup_acas_sxu_suma_test.py -q bdist_wheel
+
+build_bare_julia:
+  <<: *build_template
+  # Archive with only the Julia code (no lookup tables).
+  script:
+    - cp Example.jl ./suma/
+    - cd ./suma
+    - tar cvzf "../acas_sxu-suma-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA.tar.gz" ACAS_sXu Example.jl
+  artifacts:
+    paths:
+      - acas_sxu-suma-*.tar.gz
+    expire_in: 1 day
+
+compile:
+  # Try to compile everything to check if syntax is OK.
+  stage: test
+  script:
+    - python -m compileall .
+  needs: []  # Don't download any artifacts.
+
+.install_and_test_template: &install_and_test_template
+  # Install the distribution and run automated tests.
+  stage: test
+  image: caffeine.azurecr.io/tcas-evolution/julia-interpreter:3.11-1.0.5
+  variables:
+    EXTRAS: ''
+  before_script:
+    # Move to a clean directory.
+    # Virtual environment doesn't have to be created since this job is expected to run via
+    # a Docker executor, discarding the container afterwards.
+    - mkdir sandbox
+    - cd sandbox
+    # The following line is used to install a specific .whl files made during the build phase.
+    # Add any extras specification, if necessary.
+    - for wheel in ../dist/acas_sxu_suma-*.whl; do pip install "${wheel}${EXTRAS}"; done
+    - for wheel in ../dist/acas_sxu_suma_test-*.whl; do pip install "${wheel}"; done
+    - bash ../cache-lookup-tables.sh
+    - export SUMA_PARAMS_FILE="/cache/LookupTables/DO-396_paramsfile_acassxu_origami_20220908.txt"
+  artifacts:
+    paths:
+      # Test output details may be put into a file to avoid producing too much output
+      # (the job may fail because of that).
+      - install_and_test_*.txt
+    when: on_failure
+    expire_in: 2 days
+  needs:
+    - build_acas_sxu_suma
+    - build_acas_sxu_suma_test
+
+# NOTE: Unittest lists need to be updated when differently named tests are added.
+
+install_and_test_1_and_2_and_3:
+  <<: *install_and_test_template
+  script:
+    - python -m unittest -v -k 'Encounter1' -k 'Encounter2' -k 'Encounter3' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_4:
+  <<: *install_and_test_template
+  script:
+    - python -m unittest -v -k 'Encounter4' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_5_and_6_and_7:
+  <<: *install_and_test_template
+  script:
+    - python -m unittest -v -k 'Encounter5' -k 'Encounter6' -k 'Encounter7' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_8:
+  <<: *install_and_test_template
+  script:
+    - python -m unittest -v -k 'Encounter8' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_1:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_1_script
+    - python -m unittest -v -k 'Encounter9910' -k 'Encounter9911' -k 'Encounter9912' -k 'Encounter9913' -k 'Encounter9914' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_2:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_2_script
+    - python -m unittest -v -k 'Encounter9915' -k 'Encounter9916' -k 'Encounter9917' -k 'Encounter9918' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_3:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_3_script
+    - python -m unittest -v -k 'Encounter992' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_4:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_4_script
+    - python -m unittest -v -k 'Encounter9930' -k 'Encounter9931' -k 'Encounter9932' -k 'Encounter9933' -k 'Encounter9934' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_5:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_5_script
+    - python -m unittest -v -k 'Encounter9935' -k 'Encounter9936' -k 'Encounter9937' -k 'Encounter9938' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_6:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_6_script
+    - python -m unittest -v -k 'Encounter994' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_7:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_7_script
+    - python -m unittest -v -k 'Encounter9950' -k 'Encounter9951' -k 'Encounter9952' -k 'Encounter9953' -k 'Encounter9954' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_8:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_8_script
+    - python -m unittest -v -k 'Encounter9955' -k 'Encounter9956' -k 'Encounter9957' -k 'Encounter9958' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_9_9:
+  <<: *install_and_test_template
+  <<: *additional_test_template
+  script: &install_and_test_9_9_script
+    - python -m unittest -v -k 'Encounter996' suma.test.TestSuiteTest
+      2>&1 | tee ../$CI_JOB_NAME.txt | grep -E '^(Ran|FAILED|OK|ERROR)| \.\.\. (ok|FAIL|skipped)'
+
+install_and_test_example:
+  <<: *install_and_test_template
+  script:
+    - mkdir example
+    - cp ../example/*.json ../example/*.yml ../example/*.py example/
+    - python -m unittest -v suma.test.ExampleTest
+  artifacts: null
+
+test_bare_julia:
+  stage: test
+  image: caffeine.azurecr.io/tcas-evolution/julia-interpreter:3.11-1.0.5
+  script:
+    - bash ./cache-lookup-tables.sh
+    - mkdir sandbox
+    - tar -zxvf acas_sxu-suma-*.tar.gz -C sandbox
+    - cd sandbox
+    - ln -s /cache/LookupTables ./LookupTables
+    - julia Example.jl
+  needs:
+    - build_bare_julia
+
+deploy:
+  # Deploy the distributions to PyPI and generic repositories.
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none  # Repo contents are not needed.
+  script:
+    - pip install twine
+    - twine upload --non-interactive --disable-progress-bar dist/*
+    - for pack in acas_sxu-suma-*.tar.gz; do
+      curl -Lfs -u "${GENERIC_USERNAME}:${GENERIC_PASSWORD}" -X PUT "${GENERIC_REPOSITORY_URL}/suma/julia/${pack}" -T "${pack}";
+      done
+  rules:  &only_release
+    # Deployment is executed only for tags named with PEP 440 canonical version numbers.
+    - if: $CI_COMMIT_TAG =~ /^([1-9]\d*!)?(0|[1-9]\d*)(\.(0|[1-9]\d*))*((a|b|rc)(0|[1-9]\d*))?(\.post(0|[1-9]\d*))?(\.dev(0|[1-9]\d*))?$/
+
+.build_and_deploy_bundle_template: &build_and_deploy_bundle_template
+  # Create and deploy a convenient bundle with Julia, code and data.
+  # All done in one step due to large artifact size.
+  stage: deploy
+  variables:
+    PLATFORM: 'linux_x86_64'
+    JULIA_PACKAGE: 'julia-docker-1.0.5-linux-x86_64.tar.gz'
+    # The depot has been made on Windows, but doesn't contain any
+    # platform-specific packages.
+    JULIA_DEPOT: 'julia-pycall_json_depot-1.0.5-win64.tar.gz'
+  script:
+    # Build.
+    - bash ./cache-lookup-tables.sh
+    - curl -Lfs "${JULIA_REPOSITORY_URL}/${JULIA_PACKAGE}" -o julia.tar.gz
+    - curl -Lfs "${JULIA_REPOSITORY_URL}/${JULIA_DEPOT}" -o julia-depot.tar.gz
+    - mkdir acas_sxu_bundle
+    - cd acas_sxu_bundle
+    - tar xf ../acas_sxu-suma-*.tar.gz
+    - cp -r /cache/LookupTables ./LookupTables
+    - rm ./LookupTables/sUMA_*
+    - mkdir julia
+    - tar xf ../julia.tar.gz -C julia
+    - tar xf ../julia-depot.tar.gz -C julia
+    - cd ..
+    - BUNDLE_NAME="acas_sxu-suma-bundle-${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}-${PLATFORM}.tar.gz"
+    - tar czf "${BUNDLE_NAME}" acas_sxu_bundle
+    # Test.
+    - cd acas_sxu_bundle
+    - export JULIA_DEPOT_PATH="$(pwd)/julia/depot"
+    - ./julia/bin/julia Example.jl
+    - cd ..
+    # Deploy.
+    - curl -Lfs -u "${GENERIC_USERNAME}:${GENERIC_PASSWORD}" -X PUT "${GENERIC_REPOSITORY_URL}/suma/julia/${BUNDLE_NAME}" -T "${BUNDLE_NAME}"
+  rules:
+    # Deployment is executed only for tags named with PEP 440 canonical version numbers or manually.
+    - if: $CI_COMMIT_TAG =~ /^([1-9]\d*!)?(0|[1-9]\d*)(\.(0|[1-9]\d*))*((a|b|rc)(0|[1-9]\d*))?(\.post(0|[1-9]\d*))?(\.dev(0|[1-9]\d*))?$/
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+  needs:
+    - build_bare_julia
+
+build_and_deploy_bundle:
+  <<: *build_and_deploy_bundle_template
+
+build_and_deploy_bundle_aarch64:
+  <<: *build_and_deploy_bundle_template
+  variables:
+    PLATFORM: 'linux_aarch64'
+    JULIA_PACKAGE: 'julia-docker-1.0.5-linux-aarch64.tar.gz'
+    JULIA_DEPOT: 'julia-pycall_json_depot-1.0.5-win64.tar.gz'
+  tags:
+    - Linux
+    - ARMv8
+
+build_and_deploy_bundle_win:
+  <<: *build_and_deploy_bundle_template
+  variables:
+    PLATFORM: 'win_amd64'
+    JULIA_PACKAGE: 'julia-1.0.5-win64.tar.gz'
+    JULIA_DEPOT: 'julia-pycall_json_depot-1.0.5-win64.tar.gz'
+  script:
+    # Build.
+    - ./cache-lookup-tables.ps1
+    - curl.exe -Lfs "${env:JULIA_REPOSITORY_URL}/${env:JULIA_PACKAGE}" -o julia.tar.gz
+    - curl.exe -Lfs "${env:JULIA_REPOSITORY_URL}/${env:JULIA_DEPOT}" -o julia-depot.tar.gz
+    - mkdir acas_sxu_bundle
+    - cd acas_sxu_bundle
+    - ls ../acas_sxu-suma-*.tar.gz | %{ tar xf $_ }
+    - cp -r C:/cache/LookupTables ./LookupTables
+    - rm ./LookupTables/sUMA_*
+    - mkdir julia
+    - tar xf ../julia.tar.gz -C julia
+    - tar xf ../julia-depot.tar.gz -C julia
+    - cd ..
+    - $BUNDLE_NAME = "acas_sxu-suma-bundle-${env:CI_COMMIT_REF_SLUG}-${env:CI_COMMIT_SHORT_SHA}-${env:PLATFORM}.tar.gz"
+    - tar czf "${BUNDLE_NAME}" acas_sxu_bundle
+    # Test.
+    - cd acas_sxu_bundle
+    - $env:JULIA_DEPOT_PATH = "$(pwd)/julia/depot"
+    - ./julia/bin/julia Example.jl
+    - cd ..
+    # Deploy.
+    - curl.exe -Lfs -u "${env:GENERIC_USERNAME}:${env:GENERIC_PASSWORD}" -X PUT "${env:GENERIC_REPOSITORY_URL}/suma/julia/${BUNDLE_NAME}" -T "${BUNDLE_NAME}"
+  tags:
+    - Windows
+    - amd64

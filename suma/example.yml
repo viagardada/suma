@@ -1,0 +1,54 @@
+# Example CASCARA config file.
+!CASCARA.Parameters
+Models:
+- !CASCARA.ModelParameters
+  Name: suma
+  # Model parameters. See suma/model.py for details.
+  Parameters:
+    # use_trm: true
+    # stm_params_file: ...
+    # trm_params_file: ...
+    stm_params_file: './LookupTables/DO-396_paramsfile_acassxu_origami_20220908.txt'
+    trm_params_file: './LookupTables/DO-396_paramsfile_acassxu_origami_20220908.txt'
+    # coordination_reach_back_seconds: 0.0
+    # enable_table_caching: false
+    # process_isolation: false
+    # process_environment: null
+    # julia_script_path: ''
+Adapters:
+  # Sanity Checking verifies structure of Model inputs and
+  # outputs. Useful for testing and debugging, but may be slow for large
+  # data processing.
+- !CASCARA.SanityCheckingAdapterParameters {}
+  # Verify the simulation time is ascending.
+- !CASCARA.TimeCheckingModelAdapterParameters {}
+EventSources:
+  # A single Test Suite file on input.
+- !CASCARA.JSONTestCaseSTMInputSourceParameters
+  FileName: Encounter4110010Aircraft1Input.json
+  # Automatically produce outputs.
+  # Allows to modify start time offset and step, if needed.
+- !CASCARA.AutoOutputParameters
+  # First reference STM report should start 1 s after start time.
+  Offset_Seconds: 1.0
+StepHandlers:
+  # Display progress.
+- !CASCARA.ProgressBarHandlerParameters {}
+  # ASIM STM output JSON format.
+- !CASCARA.JSONTestCaseSTMOutputHandlerParameters
+  FileName: output/stm_output.json
+  # ASIM TRM output JSON format.
+- !CASCARA.JSONTestCaseTRMOutputHandlerParameters
+  FileName: output/trm_output.json
+  # ASIM TRM costs JSON format.
+  # Currently not supported by sUMA (always empty).
+- !CASCARA.JSONTestCaseTRMCostsHandlerParameters
+  FileName: output/trm_costs.json
+  # Generic Newline Delimited JSON log of all model outputs.
+- !CASCARA.NDJSONFileHandlerParameters
+  FileName: output/all_output.ndjson
+  # Generic Newline Delimited JSON log of all model inputs.
+  # Can be useful e.g. when the inputs are generated and/or modified on
+  # the fly.
+- !CASCARA.NDJSONFileInputHandlerParameters
+  FileName: output/all_input.ndjson

@@ -1,0 +1,264 @@
+# Example scenario with a generated trajectories and RA reactions.
+!CASCARA.Parameters
+Models:
+- !CASCARA.ModelParameters
+  Name: CASCARATestModel
+  Parameters:
+    # ...
+  ModelID: Intruder
+- !CASCARA.ModelParameters
+  # Chosen CASCARA model.
+  Name: suma
+  # Model parameters. See suma/model.py for details.
+  Parameters:
+    # use_trm: true
+    # stm_params_file: ...
+    # trm_params_file: ...
+    # coordination_reach_back_seconds: 0.0
+    # enable_table_caching: false
+    # process_isolation: false
+    # process_environment: null
+    # julia_script_path: ''
+  ModelID: sXu
+Adapters:
+  # Prioritization re-orders inputs so that ownship-related observations
+  # are always processed first by every model.
+- !CASCARA.PrioritizationAdapterParameters
+  Prioritization: ownship
+  # Sanity Checking verifies structure of Model inputs and outputs.
+  # Useful for testing and debugging, but slow for large data processing.
+- !CASCARA.SanityCheckingAdapterParameters {}
+EventSources:
+  # A source of both ownship and intruder observations for an associated
+  # aircraft/model.
+- !CASCARA.KinematicSourceParameters
+  # Internal ownship trajectory source.
+  OwnSource: !CASCARA.KinematicOwnshipSource2Parameters
+    State: !CASCARA.KinematicOwnshipSource2State
+      Lat_Deg: 49.247825141586134
+      Lon_Deg: 16.554723368811196
+      BaroAlt_Ft: 3400.0
+      VelEW_Kt: 60.0
+      VelNS_Kt: -0.1
+      BaroAltRate_FtpS: 10.0
+    Target: !CASCARA.KinematicOwnshipSource2Target
+      # BaroAltRate_FtpS: null
+      # VertAccel_FtpS2: null
+      TrackAngle_Rad: -1.5707963267948966
+      TrackAngleRate_RadpS: 0.05235987755982989
+      # HorizontalVel_Kt: null
+      # HorizontalAccel_FtpS2: null
+    Version: V15R4
+    Properties: !CASCARA.KinematicOwnshipSource2Properties
+      RadaltOffset_Ft: -200.0
+      Discretes:
+        address: 1
+        modeACode: 101
+        opflg: true
+        manualSL: 0
+        own_ground_display_mode_on: true
+        on_surface: false
+        aoto_on: true
+        is_coarsely_quant: false
+      # Constants: {}
+    Events:
+    - [discretes, 0.0]
+    - [baroalt, 0.0]
+    - [radalt, 0.0]
+    - [heading, 0.0]
+    - [wgs84, 0.0]
+    Start_Seconds: 60.0
+    # Stop_Seconds: .inf
+    # CycleLength_Seconds: 1.0
+  OwnModelID: Intruder
+  # MaxCacheAge_Seconds: 120.0
+  # ActiveSurveillance: null  # This aircraft does not reply to Active Surveillance messages.
+  PassiveSurveillance:
+    VelocityOffset_Seconds: 0.5
+    mode_s: 1
+    nic: 6
+    q_int: 25
+    rebroadcast: false
+    non_icao: false
+    adsb_version: 2
+    nacp: 7
+    nacv: 1
+    sil: 3
+    sda: 2
+    is_alt_geo_hae: false
+    is_uat: false
+    gva: 2
+    QuantizeAltitude: true
+    ExternallyValidated: false
+  RadarSurveillance:
+    # General.
+    trackId: 1
+    # ATARTrack-specific (for aircraft with RawATAR enabled).
+    range_std_dev: 50.0
+    range_rate_std_dev: 25.0
+    azimuth_std_dev: 0.17453292519943295  # 10 deg.
+    elevation_std_dev: 0.17453292519943295  # 10 deg.
+    velocity_east_std_dev: 10.0
+    velocity_north_std_dev: 10.0
+    velocity_up_std_dev: 15.0
+    # XuATAR-specific (for aircraft with RawATAR disabled).
+    trackStatus: 0
+    rel_xgrgr_Sigma: [
+      2500., 0., 0., 0.,
+      0., 2500., 0., 0.,
+      0., 0., 2500., 0.,
+      0., 0., 0., 2500.,
+      ]
+    rel_zdz_Sigma: [
+      2500., 0.,
+      0., 2500.,
+      ]
+    classification: 1  # CLASSIFICATION_MANNED
+  GroundSurveillance:
+    DispatchToOwnship: false
+    track_status: 0x0028  # MODE_S_VALID | V2V_UID_VALID
+    covariance_horiz_ft_fps: [
+      250., 0., 0., 0.,
+      0., 250., 0., 0.,
+      0., 0., 250., 0.,
+      0., 0., 0., 250.,
+      ]
+    covariance_baro_ft_fps: [
+      250., 0.,
+      0., 250.,
+      ]
+    covariance_geo_hae_ft_fps: [
+      250., 0.,
+      0., 250.,
+      ]
+    agt_id: 1
+    mode_s: 1
+    v2v_uid: 1
+    externally_validated: false
+    classification: 1  # CLASSIFICATION_MANNED
+  V2VSurveillance:
+    nacp: 7
+    nacv: 1
+    classification: 1  # CLASSIFICATION_MANNED
+    nic: 6
+    vfom_m: 6.0
+    sil: 1
+    sda: 2
+    v2v_uid: 1
+    mode_s: 1
+    mode_s_non_icao: false
+    mode_s_valid: true
+    q_int: 25
+  # AdvisoryDelay_Seconds: 1.0
+  # AdvisoryChangeDelay_Seconds: null
+  InactivityTimer_Seconds: .inf  # Run forever
+  # ReplaceDepletedSource: false
+  # IgnoreRWC: false
+  # Version: V15R4
+- !CASCARA.KinematicSourceParameters
+  OwnSource: !CASCARA.KinematicOwnshipSource2Parameters
+    State: !CASCARA.KinematicOwnshipSource2State
+      Lat_Deg: 49.22661881162176
+      Lon_Deg: 16.554723367999674
+      BaroAlt_Ft: 4600.0
+      VelEW_Kt: -60.0
+      VelNS_Kt: 0.1
+      BaroAltRate_FtpS: -10.0
+    Target: !CASCARA.KinematicOwnshipSource2Target
+      # BaroAltRate_FtpS: null
+      # VertAccel_FtpS2: null
+      TrackAngle_Rad: 1.5707963267948966
+      TrackAngleRate_RadpS: 0.05235987755982989
+      # HorizontalVel_Kt: null
+      # HorizontalAccel_FtpS2: null
+    Version: sXuV4R2
+    Properties: !CASCARA.KinematicOwnshipSource2Properties
+      RadaltOffset_Ft: -200.0
+      Discretes:
+        v2v_uid: 2
+        opflg: true
+        requested_opmode: 3  # RA
+        effective_turn_rate: .inf
+        effective_vert_rate: .inf
+        prefer_wind_relative: false
+        perform_poa: true
+        disable_gpoa: false
+        equipment: 0x0b  # V2V_IN | V2V_OUT | ADSB_1090ES_IN
+      Constants:
+        nacp: 7
+        nacv: 1
+        vfom_m: 6.0
+    Events:
+    - [discretes, 0.0]
+    - [baroalt, 0.0]
+    - [radalt, 0.0]
+    - [heading, 0.0]
+    - [wgs84, 0.0]
+    - [snapshot, 1.0]
+    Start_Seconds: 60.0
+    # Stop_Seconds: .inf
+    # CycleLength_Seconds: 1.0
+  OwnModelID: sXu
+  # MaxCacheAge_Seconds: 120.0
+  # ActiveSurveillance: null
+  # PassiveSurveillance: null
+  # RadarSurveillance: null
+  GroundSurveillance:
+    DispatchToOwnship: true
+    track_status: 0x0028  # MODE_S_VALID | V2V_UID_VALID
+    covariance_horiz_ft_fps: [
+      250., 0., 0., 0.,
+      0., 250., 0., 0.,
+      0., 0., 250., 0.,
+      0., 0., 0., 250.,
+      ]
+    covariance_baro_ft_fps: [
+      250., 0.,
+      0., 250.,
+      ]
+    covariance_geo_hae_ft_fps: [
+      250., 0.,
+      0., 250.,
+      ]
+    agt_id: 1
+    mode_s: 1
+    v2v_uid: 1
+    externally_validated: false
+    classification: 3  # CLASSIFICATION_SMALL_UNMANNED
+  # V2VSurveillance: null
+  # AdvisoryDelay_Seconds: 1.0
+  # AdvisoryChangeDelay_Seconds: null
+  InactivityTimer_Seconds: .inf
+  # ReplaceDepletedSource: false
+  # IgnoreRWC: false
+  # RawATAR: false
+  Version: sXuV4R2
+  # Automatically produce outputs. Allows to modify start time offset and step.
+- !CASCARA.AutoOutputParameters {}
+StepHandlers:
+  # Display progress.
+- !CASCARA.ProgressBarHandlerParameters {}
+  # Conditions to end the simulation.
+- !CASCARA.EndingConditionHandlerParameters
+  RunTimeMaximum_Seconds: 180.0
+  # RunTimeMinimum_Seconds: null
+  InactivityInterval_Seconds: 30.0
+  # NormalKSDepletion: false
+  # Enable RA feedback back to KS so it performs a reaction.
+- !CASCARA.RAFeedbackHandlerParameters
+  Source: sXu
+# Various output and/or analysis output files.
+- !CASCARA.NDJSONFileInputHandlerParameters
+  FileName: ./output/intruder_all_input.ndjson
+  Sources:
+  - Intruder
+- !CASCARA.NDJSONFileInputHandlerParameters
+  FileName: ./output/sxu_all_input.ndjson
+  Sources:
+  - sXu
+- !CASCARA.NDJSONFileHandlerParameters
+  FileName: ./output/sxu_all_output.ndjson
+  Sources:
+  - sXu
+- !CASCARA.KMLHandlerParameters
+  FileName: ./output/visualization.kml

@@ -1,0 +1,10 @@
+# Development environment package requirements.
+
+-r install_requires.txt
+-r install_requires_test.txt
+
+# Development tools.
+apis>=3,<4
+coverage
+pylint
+twine
