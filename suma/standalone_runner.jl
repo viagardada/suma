@@ -80,7 +80,79 @@ function run_simulation()
                 Float64(8.0),                      # vfom_m
                 Float64(data["toa"])               # toa
             )
-        # 您可以根据需要继续增加如 HEADING_OBS 等的解析
+        elseif data_type == "HEADING_OBS"
+            ACAS_sXu.ReceiveHeadingObservation(
+                stm,
+                Float64(data["psi_rad"]),       # Psi (航向角)
+                Float64(data["toa"]),           # toa (到达时间)
+                Bool(data["heading_degraded"])  # heading_degraded (是否降级)
+            )
+        elseif data_type == "PRES_ALT_OBS"
+            ACAS_sXu.ReceivePresAltObservation(
+                stm,
+                Float64(data["alt_pres_ft"]),
+                Float64(data["toa"])
+            )
+        elseif data_type == "HEIGHT_AGL_OBS"
+            ACAS_sXu.ReceiveHeightAglObservation(
+                stm,
+                Float64(data["h_ft"])
+            )
+        elseif data_type == "EXTERNALLY_VALIDATED_V2V"
+            # 底层真实的函数名是 ReceiveExternallyValidatedV2V
+            ACAS_sXu.ReceiveExternallyValidatedV2V(
+                stm,
+                Bool(data["externally_validated"]),
+                UInt128(data["remote_id"])
+            )
+        elseif data_type == "VEHICLE_TO_VEHICLE_REPORT"
+            # 提取信号质量参数（设置默认备用值以防json中没有）
+            nic_val = haskey(data, "nic") ? UInt32(data["nic"]) : UInt32(6)
+            nacp_val = haskey(data, "nacp") ? UInt32(data["nacp"]) : UInt32(7)
+            nacv_val = haskey(data, "nacv") ? UInt32(data["nacv"]) : UInt32(1)
+            vfom_val = haskey(data, "vfom_m") ? Float64(data["vfom_m"]) : Float64(8.0)
+            sil_val = haskey(data, "sil") ? UInt32(data["sil"]) : UInt32(1)
+            sda_val = haskey(data, "sda") ? UInt32(data["sda"]) : UInt32(2)
+            cls_val = haskey(data, "classification") ? UInt8(data["classification"]) : UInt8(1)
+            q_int_val = haskey(data, "q_int") ? UInt32(data["q_int"]) : UInt32(25)
+            mode_s_val = haskey(data, "mode_s") ? UInt32(data["mode_s"]) : UInt32(0)
+            non_icao = haskey(data, "mode_s_non_icao") ? Bool(data["mode_s_non_icao"]) : false
+            valid = haskey(data, "mode_s_valid") ? Bool(data["mode_s_valid"]) : true
+            
+            ACAS_sXu.ReceiveStateVectorV2VReport(
+                stm,
+                Float64(data["lat_deg"]),          # lat
+                Float64(data["lon_deg"]),          # lon
+                haskey(data, "alt_pres_ft") ? Float64(data["alt_pres_ft"]) : NaN, # alt_pres_ft
+                Float64(data["alt_hae_ft"]),       # alt_hae_ft
+                Float64(data["vel_ew_kts"]),       # vel_ew
+                Float64(data["vel_ns_kts"]),       # vel_ns
+                nic_val,
+                nacp_val,
+                nacv_val,
+                vfom_val,
+                sil_val,
+                sda_val,
+                UInt128(haskey(data, "v2v_uid") ? data["v2v_uid"] : data["remote_id"]), # 兼容两种写法
+                mode_s_val,
+                non_icao,
+                valid,
+                cls_val,
+                q_int_val,
+                Float64(data["toa"])               # toa 取放最后
+            )
+        elseif data_type == "EXTERNALLY_VALIDATED_ADSB"
+            # 身份认证 ADS-B
+            ACAS_sXu.ReceiveExternallyValidatedADSB(
+                stm,
+                Bool(data["externally_validated"]),
+                UInt32(data["address"]),         # 很多json中叫做 address 或 mode_s
+                Bool(data["non_icao_address"])   # 很多json中叫做 non_icao_address
+            )
+        elseif data_type == "ADSB_AIRCRAFT_OPERATIONAL_STATUS"
+            # 其它可继续补充...
+            # ACAS_sXu.ReceiveAdsbAircraftOperationalStatus(...)
+        # （另外还需要补充 EXTERNALLY_VALIDATED_ADSB 等）
         end
         
         # 6. 每满一秒，结算当前帧的避碰指令
@@ -92,14 +164,17 @@ function run_simulation()
             # 生成监控报告
             stm_report = ACAS_sXu.GenerateStmReport(stm, report_time)
             
-            # 计算威胁并生成规避机动建议 (传入 trm_state 并用掉没有感叹号的内置函数)
+            # 计算威胁并生成规避机动建议
             trm_report = ACAS_sXu.sXuTRMUpdate(trm, trm_state, stm_report.trm_input)
             
             # 记录旧轨迹并清理
             ACAS_sXu.StmHousekeeping(stm, trm_report)
             
-            println("  => 水平建议机动: ", trm_report.display_horiz)
-            println("  => 垂直建议机动: ", trm_report.display_vert)
+            println("  => 水平建议机动: ","\n" , trm_report.display_horiz)
+            println("")
+            println("  => 垂直建议机动: ","\n" , trm_report.display_vert)
+            
+            println("---------------------------------------------------------------------------------------------")
         end
     end
     println("仿真结束。")
