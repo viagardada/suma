@@ -16,30 +16,45 @@ function safe_parse_uint128(val)
     end
 end
 
-# [增强点 1] 扩充轻量化表的维度为 6 维: 
-# Tuple{距离, 相对高度, 方位角, 相对垂直速率, 入侵者地速, 本机地速}
-global lightweight_table = Dict{Tuple{Float64, Float64, Float64, Float64, Float64, Float64}, String}()
+# [增强点 1] 扩充轻量化表的维度为 9 维: 
+# Tuple{距离, 相对高度, 方位角, 相对航向, 入侵者地速, 本机地速, 本机垂速, 目标垂速, Tau}
+global lightweight_table = Dict{Tuple{Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64}, String}()
 
 # [增强点 2] 离散化网格设置
 const RANGE_BIN     = 500.0   # 距离: 每 500 ft 归为一类
 const ALT_BIN       = 100.0   # 相高: 每 100 ft 归为一类
 const BEARING_BIN   = 30.0    # 方位: 每 30° 归为一类
-const DZ_REL_BIN    = 10.0    # 相对垂直速率: 每 10 ft/s 归为一类
-const INT_SPEED_BIN = 50.0    # 入侵者地速 (新增): 每 50 ft/s 归为一类
-const OWN_SPEED_BIN = 50.0    # 本机地速: 每 50 ft/s 归为一类 
+const HEADING_BIN   = 30.0    # 相对航向: 每 30° 归为一类
+const SPEED_BIN     = 50.0    # 速度: 每 50 ft/s 归为一类
+const V_RATE_BIN    = 10.0    # 垂直速率: 每 10 ft/s 归为一类
+const TAU_BIN       = 5.0     # 预计遭遇时间: 每 5 秒归为一类
+const INT_SPEED_BIN = 50.0    # 入侵速度: 每 50 ft/s 归为一类
+const OWN_SPEED_BIN = 50.0    # 本机速度: 每 50 ft/s 归为一类
 
 # 更新 discretize_state 支持新增的 int_spd 参数
-function discretize_state(r::Float64, z::Float64, b::Float64, dz::Float64, int_spd::Float64, own_spd::Float64)
+function discretize_state(r::Float64, z::Float64, b::Float64, psi::Float64, int_spd::Float64, own_spd::Float64, own_dz::Float64, int_dz::Float64, tau::Float64)
     r_bin = round(r / RANGE_BIN) * RANGE_BIN
     a_bin = round(z / ALT_BIN) * ALT_BIN
+    
     b_bin = round(b / BEARING_BIN) * BEARING_BIN
     if b_bin > 180.0
         b_bin -= 360.0
     end
-    dz_bin = round(dz / DZ_REL_BIN) * DZ_REL_BIN
+    
+    psi_bin = round(psi / HEADING_BIN) * HEADING_BIN
+    if psi_bin > 180.0
+        psi_bin -= 360.0
+    end
+    
     int_spd_bin = round(int_spd / INT_SPEED_BIN) * INT_SPEED_BIN
     own_spd_bin = round(own_spd / OWN_SPEED_BIN) * OWN_SPEED_BIN
-    return (r_bin, a_bin, b_bin, dz_bin, int_spd_bin, own_spd_bin)
+    own_dz_bin  = round(own_dz / V_RATE_BIN) * V_RATE_BIN
+    int_dz_bin  = round(int_dz / V_RATE_BIN) * V_RATE_BIN
+    
+    # 限制 Tau 的最大离散值，无穷大直接给固定极大值
+    tau_bin = tau >= 100.0 ? 100.0 : round(tau / TAU_BIN) * TAU_BIN
+
+    return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 end
 
 function extract_threat_state(trm_input::ACAS_sXu.TRMInput)
@@ -47,35 +62,51 @@ function extract_threat_state(trm_input::ACAS_sXu.TRMInput)
         int_display = trm_input.intruder[1].stm_display
         own_info    = trm_input.own
         
-        r_ground    = isnan(int_display.r_ground_ft) ? 0.0 : int_display.r_ground_ft
-        z_rel       = isnan(int_display.z_rel_ft) ? 0.0 : int_display.z_rel_ft
+        # 1. 距离与相对高度
+        r_ground = isnan(int_display.r_ground_ft) ? 0.0 : int_display.r_ground_ft
+        z_rel    = isnan(int_display.z_rel_ft) ? 0.0 : int_display.z_rel_ft
         
-        # [增强点 3] 提取方位角 (入侵者方位角) -> 已有
-        b_rad       = isnan(int_display.bearing_rel_rad) ? 0.0 : int_display.bearing_rel_rad
+        # 2. 方位角 (Theta)
+        b_rad = isnan(int_display.bearing_rel_rad) ? 0.0 : int_display.bearing_rel_rad
         bearing_deg = b_rad * (180.0 / π)
         
-        dz_rel      = isnan(int_display.dz_rel_fps) ? 0.0 : int_display.dz_rel_fps
+        # 3. 速度解算
+        dx_rel = isnan(int_display.dx_rel_fps) ? 0.0 : int_display.dx_rel_fps
+        dy_rel = isnan(int_display.dy_rel_fps) ? 0.0 : int_display.dy_rel_fps
+        own_speed = isnan(own_info.ground_speed) ? 0.0 : own_info.ground_speed
         
-        # [增强点 4] 提取本机地速 (本机无人机水平速度) -> 已有
-        own_speed   = isnan(own_info.ground_speed) ? 0.0 : own_info.ground_speed
-
-        # [增强点 5] 解算入侵者绝对水平速度 (新增)
-        # 1. 提取相对水平速度组件 (基于ENU坐标系)
-        dx_rel_fps = isnan(int_display.dx_rel_fps) ? 0.0 : int_display.dx_rel_fps # 东西方向
-        dy_rel_fps = isnan(int_display.dy_rel_fps) ? 0.0 : int_display.dy_rel_fps # 南北方向
-        # 2. 提取本机航迹角
-        track_angle = isnan(own_info.track_angle) ? 0.0 : own_info.track_angle
-        # 3. 将本机地速分解到东西南北，算出入侵者绝对速度分量
-        own_vE = own_speed * sin(track_angle)
-        own_vN = own_speed * cos(track_angle)
-        int_vE = dx_rel_fps + own_vE
-        int_vN = dy_rel_fps + own_vN
-        # 4. 合成计算目标绝对地速
+        own_track = isnan(own_info.track_angle) ? 0.0 : own_info.track_angle
+        own_vE = own_speed * sin(own_track)
+        own_vN = own_speed * cos(own_track)
+        int_vE = dx_rel + own_vE
+        int_vN = dy_rel + own_vN
         int_speed = hypot(int_vE, int_vN)
         
-        return (r_ground, z_rel, bearing_deg, dz_rel, int_speed, own_speed)
+        # 4. 相对航向角 (Psi) - 【原版算法强依赖】
+        int_track = atan(int_vE, int_vN)
+        psi_rad = int_track - own_track
+        # 归一化到 [-pi, pi]
+        psi_rad = atan(sin(psi_rad), cos(psi_rad))
+        psi_deg = psi_rad * (180.0 / π)
+        
+        # 5. 独立垂直速率 - 【原版算法垂直逻辑强依赖】
+        own_dz = isnan(own_info.effective_vert_rate) ? 0.0 : own_info.effective_vert_rate
+        # ACAS_sXu 中 dz_rel 通常 = dz_int - dz_own
+        dz_rel = isnan(int_display.dz_rel_fps) ? 0.0 : int_display.dz_rel_fps
+        int_dz = dz_rel + own_dz
+        
+        # 6. Tau (相遇时间) - 【原版触发逻辑强依赖】
+        # 简单横向径向接近率求 Tau (t = -r / r_dot)
+        # 注意需要防范 r_dot 为负面逼近的情况
+        dot_r = (int_vE * sin(b_rad) + int_vN * cos(b_rad)) - own_speed 
+        tau_h = (dot_r < -0.1) ? (-r_ground / dot_r) : 999.0 # 无限大代表不会相撞
+        
+        # 7. (可选) 历史告警 prev_adv 
+        # 此处如果要提取 prev_adv，需要传入 trm_report 或者维护上一时刻状态。
+        
+        return (r_ground, z_rel, bearing_deg, psi_deg, int_speed, own_speed, own_dz, int_dz, tau_h)
     end
-    return (NaN, NaN, NaN, NaN, NaN, NaN)
+    return (NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN)
 end
 
 function run_probe(input_file::String, params_file::String)
@@ -85,7 +116,7 @@ function run_probe(input_file::String, params_file::String)
     trm_state = ACAS_sXu.sXuTRMState()
 
     println("加载推演剧本: $input_file")
-    parsed_json = JSON.parsefile(input_file)
+    parsed_json = JSON.parsefile(input_file; allownan=true)
     
     if haskey(parsed_json, "acasx_reports")
         reports = parsed_json["acasx_reports"]
@@ -140,13 +171,14 @@ function run_probe(input_file::String, params_file::String)
             stm_report = ACAS_sXu.GenerateStmReport(stm, report_time)
             
             # [修改处]: 解包提取更多的状态
-            r_ground, z_rel, b_deg, dz_rel, int_spd, own_spd = extract_threat_state(stm_report.trm_input)
+            r_ground, z_rel, b_deg, psi_deg, int_spd, own_spd, own_dz, int_dz, tau_h = extract_threat_state(stm_report.trm_input)
             trm_report = ACAS_sXu.sXuTRMUpdate(trm, trm_state, stm_report.trm_input)
             ACAS_sXu.StmHousekeeping(stm, trm_report)
             
             if !isnan(r_ground)
-                # 将五维状态转换为离散格子
-                key = discretize_state(r_ground, z_rel, b_deg, dz_rel, int_spd, own_spd)
+                # 将 9 维状态转换为离散格子
+                # ↓↓↓ 确保这行里面是 own_dz, int_dz 等9个变量，没有 dz_rel
+                key = discretize_state(r_ground, z_rel, b_deg, psi_deg, int_spd, own_spd, own_dz, int_dz, tau_h)
                 
                 adv_str = "H:" * string(trm_report.display_horiz.cc) * " | V:" * string(trm_report.display_vert.cc)
                 
@@ -154,8 +186,8 @@ function run_probe(input_file::String, params_file::String)
                     lightweight_table[key] = adv_str
                 end
                 
-                @printf("[Time %4d] 距离:%04.0fft | 相高:%+4.0fft | 方位:%+4.0f° | 垂速:%+3.0ffps | 目标地速:%03.0ffps | 本机地速:%03.0ffps => %s\n", 
-                        curTick, key[1], key[2], key[3], key[4], key[5], key[6], adv_str)
+                @printf("[Time %4d] 距离:%04.0f | 相高:%+4.0f | 方位:%+4.0f° | 航向差:%+4.0f° | 目标速:%03.0f | 本机速:%03.0f | 目标垂速:%+3.0f | 本机垂:%+3.0f | Tau:%.1f => %s\n", 
+                        curTick, key[1], key[2], key[3], key[4], key[5], key[6], key[7], key[8], key[9], adv_str)
             end
         end
     end
@@ -163,18 +195,17 @@ end
 
 function export_csv(out_path::String)
     open(out_path, "w") do f
-        # 更新表头以反映五个维度
-        write(f, "Range(ft),Rel_Altitude(ft),Bearing(deg),Rel_Vertical_Rate(fps),Intruder_Speed(fps),Own_Speed(fps),Recommended_Action\n")
+        # 更新表头以反映 9 个维度
+        write(f, "Range(ft),Rel_Altitude(ft),Bearing(deg),Rel_Heading(deg),Intruder_Speed(fps),Own_Speed(fps),Own_Vert_Rate(fps),Int_Vert_Rate(fps),Tau(s),Recommended_Action\n")
         
-        # 排序输出：依次优先按 距离、相对高度、方位角、等 排序
         curr_keys = sort(collect(keys(lightweight_table)))
         for key in curr_keys
-            r, a, b, dz, ispd, ospd = key
+            r, a, b, psi, ispd, ospd, odz, idz, tau = key
             action = lightweight_table[key]
-            write(f, "$(r),$(a),$(b),$(dz),$(ispd),$(ospd),\"$(action)\"\n")
+            write(f, "$(r),$(a),$(b),$(psi),$(ispd),$(ospd),$(odz),$(idz),$(tau),\"$(action)\"\n")
         end
     end
-    println("\n√ 5维轻量化查询表已经导出至: ", out_path)
+    println("\n√ 9维轻量化查询表已经导出至: ", out_path)
 end
 
 params_file = "D:/workforce/project/suma/suma/suma/LookupTables/DO-396_paramsfile_acassxu_origami_20220908.txt"
@@ -183,7 +214,17 @@ files_to_probe = [
     "D:/workforce/project/suma/suma/example/Encounter4110010Aircraft1Input.json",
     "D:/workforce/project/suma/suma/suma/Encounter1000003Aircraft1Input.json",
     "D:/workforce/project/suma/suma/suma/Encounter1000009Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter1000003Aircraft1Input.json"
+    "D:/workforce/project/suma/suma/suma/Encounter1000010Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter2200001Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter2200002Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter2200003Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter2200004Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter4110010Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter4110006Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter4110007Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter4110008Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter4420001Aircraft1Input.json",
+    "D:/workforce/project/suma/suma/suma/Encounter7000036Aircraft1Input.json"
 ]
 
 for file in files_to_probe
