@@ -17,6 +17,18 @@ H_ACTION_MAP = {
     4: "STRAIGHT (保持直飞)"
 }
 
+# [新增处]: 垂直动作字典映射
+V_ACTION_MAP = {
+    0: "NO ADVISORY (安全/维持)",
+    1: "CLEAR OF CONFLICT (解除)",
+    2: "DO NOT CLIMB (禁止爬升)",
+    3: "DO NOT DESCEND (禁止下降)",
+    4: "CLIMB (建议爬升)",
+    5: "DESCEND (建议下降)",
+    6: "CROSSING CLIMB (交叉爬升)",
+    7: "CROSSING DESCEND (交叉下降)"
+}
+
 # --- 离散化网格设置 (务必与 probe_table.jl 中保持绝对一致) ---
 RANGE_BIN     = 500.0
 ALT_BIN       = 100.0
@@ -29,7 +41,15 @@ TAU_BIN       = 5.0
 
 def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     """将连续物理状态转换为完整的 9 维离散状态元组"""
-    r_bin = round(r / RANGE_BIN) * RANGE_BIN
+    # [修改点1]: 动态不均匀 Range 划分, 且设置下边界为 100.0 ft
+    if r <= 500.0:
+        r_bin = round(r / 100.0) * 100.0
+        r_bin = max(100.0, r_bin)
+    elif r <= 2000.0:
+        r_bin = round(r / 500.0) * 500.0
+    else:
+        r_bin = round(r / 1000.0) * 1000.0
+
     a_bin = round(z / ALT_BIN) * ALT_BIN
     
     b_bin = round(b / BEARING_BIN) * BEARING_BIN
@@ -44,7 +64,9 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     own_dz_bin = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
+    # [修改点2]: Tau 的最高保底和最低兜底 5.0
     tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
+    tau_bin = max(TAU_BIN, tau_bin)
     
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 
@@ -75,13 +97,14 @@ def load_lookup_table(csv_path):
     return lookup_table
 
 def parse_action_str(action_str):
-    """解析 'H:2 | V:4' 返回水平动作编号"""
+    """解析 'H:2 | V:4' 返回水平动作和垂直动作编号"""
     try:
         parts = action_str.split("|")
         h_code = int(parts[0].split(":")[1].strip())
-        return h_code
+        v_code = int(parts[1].split(":")[1].strip())
+        return h_code, v_code
     except:
-        return 0
+        return 0, 0
 
 def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
     """极坐标水平空间渲染"""
@@ -92,17 +115,31 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
     discrete_key = discretize_state(*state)
     r_bin, _, b_bin = discrete_key[0], discrete_key[1], discrete_key[2]
 
-    h_code = parse_action_str(action_str)
-    h_text = H_ACTION_MAP.get(h_code, "UNKNOWN")
+    # [修改处]: 获取 h_code 和 v_code
+    h_code, v_code = parse_action_str(action_str)
+    h_text = H_ACTION_MAP.get(h_code, f"UNKNOWN({h_code})")
+    v_text = V_ACTION_MAP.get(v_code, f"UNKNOWN({v_code})")
 
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': 'polar'})
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
     
     # 画网格背景
-    r_ticks = np.arange(0, max_range_plot + RANGE_BIN, RANGE_BIN)
+    # [修改点] 动态适配放大的雷达盘刻度
+    if max_range_plot <= 1000:
+        step = 100.0
+        label_step = 200.0  # 每 200 显示一次字符以防拥挤
+    elif max_range_plot <= 3000:
+        step = 500.0
+        label_step = 500.0
+    else:
+        step = 500.0
+        label_step = 1000.0
+        
+    r_ticks = np.arange(0, max_range_plot + step, step)
     ax.set_yticks(r_ticks)
-    ax.set_yticklabels([str(int(i)) if i % 1000 == 0 else "" for i in r_ticks], color='gray', size=8)
+    ax.set_yticklabels([str(int(i)) if i % label_step == 0 else "" for i in r_ticks], color='gray', size=8)
+    
     theta_ticks = np.arange(0, 360, BEARING_BIN)
     ax.set_xticks(np.radians(theta_ticks))
     
@@ -110,8 +147,35 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
     target_theta = np.radians(bearing_deg if bearing_deg >= 0 else bearing_deg + 360)
     
     # 网格掩码边界
-    r_inner = max(0, r_bin - RANGE_BIN / 2)
-    r_outer = r_bin + RANGE_BIN / 2
+    # [修改点3]: 动态适应新的非均匀 Range 网格的绘制跨度
+    if r_bin <= 500.0:
+        range_span = 100.0
+        # 特殊处理：如果是最小 100 的网格，里面画到0，外面画到150
+        if r_bin == 100.0:
+            r_inner = 0.0
+            r_outer = 150.0 # 100.0 + 50.0
+        else:
+            r_inner = r_bin - range_span / 2
+            r_outer = r_bin + range_span / 2
+    elif r_bin <= 2000.0:
+        range_span = 500.0
+        # 如果刚好衔接在 500 处，内侧和 100区间的要拼上
+        if r_bin == 500.0:
+            r_inner = 450.0 # 500以内的精度是100，所以内侧边界画到 450
+            r_outer = 750.0 # (500 + 250)
+        else:
+            r_inner = r_bin - range_span / 2
+            r_outer = r_bin + range_span / 2
+    else:
+        range_span = 1000.0
+        if r_bin == 2000.0:
+            r_inner = 1750.0
+            r_outer = 2500.0
+        else:
+            r_inner = r_bin - range_span / 2
+            r_outer = r_bin + range_span / 2
+            
+    r_inner = max(0, r_inner) # 确保内圆不小于0
     
     # 确保中心角度被转换为 0-360 的绝对正角度
     theta_center_deg = float(b_bin) % 360.0
@@ -168,8 +232,9 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
                 zorder=4)
 
     # 标签配置
-    plt.title(f"Horizontal State Space (Polar)\nAction: {h_text} ({action_str})", 
-              fontsize=14, fontweight='bold', pad=20)
+    # [修改处]: 将垂直动作追加到标题中
+    plt.title(f"Horizontal State Space (Polar)\nAction: {action_str}\n  H: {h_text}\n  V: {v_text}", 
+              fontsize=13, fontweight='bold', pad=20)
     
     info_text = (
         f"Real State:\n"
@@ -195,7 +260,7 @@ if __name__ == "__main__":
     
     # === 测试场景 ===
     # 状态: (距离, 相高, 方位, 偏航, 目标速, 本机速, 本机升降, 目标升降, Tau)
-    state = (4000.0, 0.0, 0.0, 180.0, 50.0, 50.0, 20.0, 20.0, 45.0)
+    state = (3000.0, -100.0, 0.0, 180.0, 50.0, 50.0, 20.0, 20.0, 40.0)
     
     # 动态查表，缺省时默认为 H:0 | V:0
     discrete_key = discretize_state(*state)
@@ -203,4 +268,14 @@ if __name__ == "__main__":
     
     print(f"查表得到的动作为: {action}")
     print("绘制极坐标状态图...")
-    plot_polar_state(state, action, max_range_plot=5000)
+    
+    # [修改点]: 动态调整图表的缩放大小，使得高亮区域可见
+    target_r = state[0]
+    if target_r <= 500.0:
+        plot_range = 800  # 极近距离时，只画半径 800，这样 150-250 的高亮扇区就非常明显了
+    elif target_r <= 2000.0:
+        plot_range = 2500
+    else:
+        plot_range = 5000
+        
+    plot_polar_state(state, action, max_range_plot=plot_range)

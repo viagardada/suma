@@ -15,7 +15,15 @@ TAU_BIN       = 5.0
 
 def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     """将连续物理状态转换为离散状态"""
-    r_bin = round(r / RANGE_BIN) * RANGE_BIN
+    if r <= 500.0:
+        r_bin = round(r / 100.0) * 100.0
+        # 防止出现 r=0.0 的物理无意义查表
+        r_bin = max(100.0, r_bin)
+    elif r <= 2000.0:
+        r_bin = round(r / 500.0) * 500.0
+    else:
+        r_bin = round(r / 1000.0) * 1000.0
+        
     a_bin = round(z / ALT_BIN) * ALT_BIN
     
     b_bin = round(b / BEARING_BIN) * BEARING_BIN
@@ -30,7 +38,10 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     own_dz_bin = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
+    # 原本: tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
+    # 修改为:
     tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
+    tau_bin = max(TAU_BIN, tau_bin) # 兜底，最少给 5.0 秒的高危判定
     
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 

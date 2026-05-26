@@ -33,7 +33,18 @@ const OWN_SPEED_BIN = 50.0    # 本机速度: 每 50 ft/s 归为一类
 
 # 更新 discretize_state 支持新增的 int_spd 参数
 function discretize_state(r::Float64, z::Float64, b::Float64, psi::Float64, int_spd::Float64, own_spd::Float64, own_dz::Float64, int_dz::Float64, tau::Float64)
-    r_bin = round(r / RANGE_BIN) * RANGE_BIN
+    # 距离(Range)的非均匀离散化
+    r_bin = 0.0
+    if r <= 500.0
+        r_bin = round(r / 100.0) * 100.0
+        # 防治 r 被化为了 0.0，最小值保底为 100.0 ft 保护泡
+        r_bin = max(100.0, r_bin)
+    elseif r <= 2000.0
+        r_bin = round(r / 500.0) * 500.0
+    else
+        r_bin = round(r / 1000.0) * 1000.0
+    end
+    
     a_bin = round(z / ALT_BIN) * ALT_BIN
     
     b_bin = round(b / BEARING_BIN) * BEARING_BIN
@@ -51,8 +62,9 @@ function discretize_state(r::Float64, z::Float64, b::Float64, psi::Float64, int_
     own_dz_bin  = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin  = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
-    # 限制 Tau 的最大离散值，无穷大直接给固定极大值
+    # 限制 Tau 的最大离散值为 100.0，并将最小值保底为 TAU_BIN (5.0 秒)
     tau_bin = tau >= 100.0 ? 100.0 : round(tau / TAU_BIN) * TAU_BIN
+    tau_bin = max(TAU_BIN, tau_bin) # 兜底，防止出现 0.0
 
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 end
@@ -213,18 +225,18 @@ params_file = "D:/workforce/project/suma/suma/suma/LookupTables/DO-396_paramsfil
 files_to_probe = [
     "D:/workforce/project/suma/suma/example/Encounter4110010Aircraft1Input.json",
     "D:/workforce/project/suma/suma/suma/Encounter1000003Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter1000009Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter1000010Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter2200001Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter2200002Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter2200003Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter2200004Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter4110010Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter4110006Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter4110007Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter4110008Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter4420001Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter7000036Aircraft1Input.json"
+    # "D:/workforce/project/suma/suma/suma/Encounter1000009Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter1000010Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter2200001Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter2200002Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter2200003Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter2200004Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter4110010Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter4110006Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter4110007Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter4110008Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter4420001Aircraft1Input.json",
+    # "D:/workforce/project/suma/suma/suma/Encounter7000036Aircraft1Input.json"
 ]
 
 for file in files_to_probe
