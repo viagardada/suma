@@ -17,7 +17,7 @@ H_ACTION_MAP = {
     4: "STRAIGHT (保持直飞)"
 }
 
-# [新增处]: 垂直动作字典映射
+#  垂直动作字典映射
 V_ACTION_MAP = {
     0: "NO ADVISORY (安全/维持)",
     1: "CLEAR OF CONFLICT (解除)",
