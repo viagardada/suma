@@ -1,0 +1,3251 @@
+{
+    "playback_header": {
+        "description": {
+            "text": "Auto-Generated Kinematic Encounter for Query Table Building"
+        },
+        "start_time": 0.0,
+        "has_timing_control": false
+    },
+    "acasx_reports": [
+        {
+            "report_time": 0.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 0.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 0.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 0.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 0.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 0.958,
+                    "alt_pres_ft": 4574.897320393895
+                }
+            }
+        },
+        {
+            "report_time": 0.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 0.96,
+                    "lat_deg": 40.00047404933959,
+                    "lon_deg": -74.99966040441294,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4574.897320393895,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 0.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 0.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.97981961625277,
+                    "lon_deg": -74.97194157790274,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4359.870869035224,
+                    "alt_hae_ft": 4359.870869035224,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 1.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 1.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 1.9569999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 1.9569999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 1.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 1.958,
+                    "alt_pres_ft": 4573.639880759154
+                }
+            }
+        },
+        {
+            "report_time": 1.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 1.96,
+                    "lat_deg": 40.000948098679174,
+                    "lon_deg": -74.99932080646822,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4573.639880759154,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 1.9969999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 1.9969999999999999,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.980193296328316,
+                    "lon_deg": -74.97243073321559,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4350.033797296616,
+                    "alt_hae_ft": 4350.033797296616,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 2.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 2.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 2.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 2.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 2.9579999999999997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 2.9579999999999997,
+                    "alt_pres_ft": 4572.382441124413
+                }
+            }
+        },
+        {
+            "report_time": 2.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 2.96,
+                    "lat_deg": 40.00142214801876,
+                    "lon_deg": -74.99898120616578,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4572.382441124413,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 2.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 2.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.980566976403864,
+                    "lon_deg": -74.97291989120347,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4340.196725558008,
+                    "alt_hae_ft": 4340.196725558008,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 3.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 3.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 3.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 3.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 3.9579999999999997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 3.9579999999999997,
+                    "alt_pres_ft": 4571.125001489672
+                }
+            }
+        },
+        {
+            "report_time": 3.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 3.96,
+                    "lat_deg": 40.00189619735835,
+                    "lon_deg": -74.99864160350556,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4571.125001489672,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 3.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 3.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98094065647941,
+                    "lon_deg": -74.97340905186645,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4330.359653819401,
+                    "alt_hae_ft": 4330.359653819401,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 4.9559999999999995,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 4.9559999999999995,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 4.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 4.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 4.957999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 4.957999999999999,
+                    "alt_pres_ft": 4569.867561854931
+                }
+            }
+        },
+        {
+            "report_time": 4.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 4.959999999999999,
+                    "lat_deg": 40.002370246697936,
+                    "lon_deg": -74.99830199848752,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4569.867561854931,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 4.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 4.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98131433655496,
+                    "lon_deg": -74.97389821520458,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4320.522582080793,
+                    "alt_hae_ft": 4320.522582080793,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 5.9559999999999995,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 5.9559999999999995,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 5.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 5.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 5.957999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 5.957999999999999,
+                    "alt_pres_ft": 4568.6101222201905
+                }
+            }
+        },
+        {
+            "report_time": 5.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 5.959999999999999,
+                    "lat_deg": 40.00284429603752,
+                    "lon_deg": -74.99796239111159,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4568.6101222201905,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 5.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 5.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98168801663051,
+                    "lon_deg": -74.97438738121791,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4310.685510342185,
+                    "alt_hae_ft": 4310.685510342185,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 6.9559999999999995,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 6.9559999999999995,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 6.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 6.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 6.957999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 6.957999999999999,
+                    "alt_pres_ft": 4567.35268258545
+                }
+            }
+        },
+        {
+            "report_time": 6.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 6.959999999999999,
+                    "lat_deg": 40.00331834537711,
+                    "lon_deg": -74.99762278137771,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4567.35268258545,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 6.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 6.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.982061696706054,
+                    "lon_deg": -74.97487654990648,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4300.848438603577,
+                    "alt_hae_ft": 4300.848438603577,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 7.9559999999999995,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 7.9559999999999995,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 7.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 7.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 7.957999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 7.957999999999999,
+                    "alt_pres_ft": 4566.095242950709
+                }
+            }
+        },
+        {
+            "report_time": 7.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 7.959999999999999,
+                    "lat_deg": 40.0037923947167,
+                    "lon_deg": -74.99728316928584,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4566.095242950709,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 7.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 7.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.9824353767816,
+                    "lon_deg": -74.97536572127035,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4291.011366864969,
+                    "alt_hae_ft": 4291.011366864969,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 8.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 8.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 8.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 8.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 8.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 8.958,
+                    "alt_pres_ft": 4564.837803315968
+                }
+            }
+        },
+        {
+            "report_time": 8.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 8.959999999999999,
+                    "lat_deg": 40.004266444056285,
+                    "lon_deg": -74.99694355483591,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4564.837803315968,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 8.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 8.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98280905685715,
+                    "lon_deg": -74.97585489530955,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4281.174295126361,
+                    "alt_hae_ft": 4281.174295126361,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 9.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 9.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 9.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 9.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 9.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 9.958,
+                    "alt_pres_ft": 4563.580363681227
+                }
+            }
+        },
+        {
+            "report_time": 9.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 9.959999999999999,
+                    "lat_deg": 40.00474049339587,
+                    "lon_deg": -74.99660393802787,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4563.580363681227,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 9.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 9.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.9831827369327,
+                    "lon_deg": -74.97634407202416,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4271.3372233877535,
+                    "alt_hae_ft": 4271.3372233877535,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 10.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 10.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 10.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 10.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 10.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 10.958,
+                    "alt_pres_ft": 4562.322924046486
+                }
+            }
+        },
+        {
+            "report_time": 10.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 10.959999999999999,
+                    "lat_deg": 40.00521454273546,
+                    "lon_deg": -74.99626431886168,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4562.322924046486,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 10.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 10.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.983556417008245,
+                    "lon_deg": -74.9768332514142,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4261.500151649146,
+                    "alt_hae_ft": 4261.500151649146,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 11.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 11.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 11.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 11.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 11.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 11.958,
+                    "alt_pres_ft": 4561.065484411745
+                }
+            }
+        },
+        {
+            "report_time": 11.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 11.959999999999999,
+                    "lat_deg": 40.005688592075046,
+                    "lon_deg": -74.99592469733724,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4561.065484411745,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 11.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 11.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98393009708379,
+                    "lon_deg": -74.97732243347976,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4251.663079910538,
+                    "alt_hae_ft": 4251.663079910538,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 12.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 12.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 12.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 12.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 12.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 12.958,
+                    "alt_pres_ft": 4559.808044777004
+                }
+            }
+        },
+        {
+            "report_time": 12.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 12.959999999999999,
+                    "lat_deg": 40.00616264141463,
+                    "lon_deg": -74.99558507345454,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4559.808044777004,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 12.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 12.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98430377715934,
+                    "lon_deg": -74.97781161822084,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4241.82600817193,
+                    "alt_hae_ft": 4241.82600817193,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 13.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 13.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 13.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 13.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 13.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 13.958,
+                    "alt_pres_ft": 4558.5506051422635
+                }
+            }
+        },
+        {
+            "report_time": 13.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 13.959999999999999,
+                    "lat_deg": 40.00663669075422,
+                    "lon_deg": -74.99524544721349,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4558.5506051422635,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 13.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 13.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98467745723489,
+                    "lon_deg": -74.97830080563753,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4231.988936433322,
+                    "alt_hae_ft": 4231.988936433322,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 14.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 14.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 14.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 14.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 14.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 14.958,
+                    "alt_pres_ft": 4557.293165507523
+                }
+            }
+        },
+        {
+            "report_time": 14.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 14.959999999999999,
+                    "lat_deg": 40.00711074009381,
+                    "lon_deg": -74.99490581861406,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4557.293165507523,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 14.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 14.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.985051137310435,
+                    "lon_deg": -74.97878999572985,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4222.151864694714,
+                    "alt_hae_ft": 4222.151864694714,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 15.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 15.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 15.956999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 15.956999999999999,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 15.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 15.958,
+                    "alt_pres_ft": 4556.035725872782
+                }
+            }
+        },
+        {
+            "report_time": 15.959999999999999,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 15.959999999999999,
+                    "lat_deg": 40.007584789433395,
+                    "lon_deg": -74.99456618765618,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4556.035725872782,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 15.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 15.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98542481738598,
+                    "lon_deg": -74.97927918849788,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4212.314792956106,
+                    "alt_hae_ft": 4212.314792956106,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 16.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 16.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 16.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 16.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 16.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 16.958,
+                    "alt_pres_ft": 4554.778286238041
+                }
+            }
+        },
+        {
+            "report_time": 16.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 16.96,
+                    "lat_deg": 40.00805883877298,
+                    "lon_deg": -74.9942265543398,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4554.778286238041,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 16.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 16.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98579849746153,
+                    "lon_deg": -74.97976838394166,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4202.477721217499,
+                    "alt_hae_ft": 4202.477721217499,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 17.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 17.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 17.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 17.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 17.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 17.958,
+                    "alt_pres_ft": 4553.5208466033
+                }
+            }
+        },
+        {
+            "report_time": 17.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 17.96,
+                    "lat_deg": 40.00853288811257,
+                    "lon_deg": -74.99388691866487,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4553.5208466033,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 17.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 17.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98617217753708,
+                    "lon_deg": -74.98025758206123,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4192.640649478891,
+                    "alt_hae_ft": 4192.640649478891,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 18.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 18.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 18.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 18.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 18.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 18.958,
+                    "alt_pres_ft": 4552.263406968559
+                }
+            }
+        },
+        {
+            "report_time": 18.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 18.96,
+                    "lat_deg": 40.009006937452156,
+                    "lon_deg": -74.99354728063132,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4552.263406968559,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 18.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 18.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.986545857612626,
+                    "lon_deg": -74.98074678285664,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4182.803577740283,
+                    "alt_hae_ft": 4182.803577740283,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 19.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 19.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 19.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 19.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 19.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 19.958,
+                    "alt_pres_ft": 4551.005967333818
+                }
+            }
+        },
+        {
+            "report_time": 19.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 19.96,
+                    "lat_deg": 40.00948098679174,
+                    "lon_deg": -74.99320764023909,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4551.005967333818,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 19.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 19.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98691953768817,
+                    "lon_deg": -74.98123598632795,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4172.966506001675,
+                    "alt_hae_ft": 4172.966506001675,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 20.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 20.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 20.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 20.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 20.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 20.958,
+                    "alt_pres_ft": 4549.748527699077
+                }
+            }
+        },
+        {
+            "report_time": 20.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 20.96,
+                    "lat_deg": 40.00995503613133,
+                    "lon_deg": -74.99286799748815,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4549.748527699077,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 20.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 20.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98729321776372,
+                    "lon_deg": -74.9817251924752,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4163.129434263067,
+                    "alt_hae_ft": 4163.129434263067,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 21.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 21.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 21.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 21.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 21.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 21.958,
+                    "alt_pres_ft": 4548.4910880643365
+                }
+            }
+        },
+        {
+            "report_time": 21.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 21.96,
+                    "lat_deg": 40.01042908547092,
+                    "lon_deg": -74.99252835237841,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4548.4910880643365,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 21.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 21.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98766689783927,
+                    "lon_deg": -74.98221440129845,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4153.292362524459,
+                    "alt_hae_ft": 4153.292362524459,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 22.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 22.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 22.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 22.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 22.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 22.958,
+                    "alt_pres_ft": 4547.233648429596
+                }
+            }
+        },
+        {
+            "report_time": 22.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 22.96,
+                    "lat_deg": 40.010903134810505,
+                    "lon_deg": -74.99218870490985,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4547.233648429596,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 22.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 22.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.988040577914816,
+                    "lon_deg": -74.98270361279775,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4143.4552907858515,
+                    "alt_hae_ft": 4143.4552907858515,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 23.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 23.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 23.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 23.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 23.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 23.958,
+                    "alt_pres_ft": 4545.976208794855
+                }
+            }
+        },
+        {
+            "report_time": 23.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 23.96,
+                    "lat_deg": 40.01137718415009,
+                    "lon_deg": -74.99184905508238,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4545.976208794855,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 23.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 23.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.988414257990364,
+                    "lon_deg": -74.98319282697314,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4133.618219047244,
+                    "alt_hae_ft": 4133.618219047244,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 24.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 24.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 24.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 24.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 24.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 24.958,
+                    "alt_pres_ft": 4544.718769160114
+                }
+            }
+        },
+        {
+            "report_time": 24.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 24.96,
+                    "lat_deg": 40.01185123348968,
+                    "lon_deg": -74.99150940289597,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4544.718769160114,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 24.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 24.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98878793806591,
+                    "lon_deg": -74.98368204382467,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4123.781147308636,
+                    "alt_hae_ft": 4123.781147308636,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 25.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 25.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 25.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 25.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 25.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 25.958,
+                    "alt_pres_ft": 4543.461329525373
+                }
+            }
+        },
+        {
+            "report_time": 25.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 25.96,
+                    "lat_deg": 40.012325282829266,
+                    "lon_deg": -74.99116974835056,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4543.461329525373,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 25.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 25.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98916161814146,
+                    "lon_deg": -74.98417126335241,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4113.944075570028,
+                    "alt_hae_ft": 4113.944075570028,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 26.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 26.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 26.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 26.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 26.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 26.958,
+                    "alt_pres_ft": 4542.203889890632
+                }
+            }
+        },
+        {
+            "report_time": 26.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 26.96,
+                    "lat_deg": 40.01279933216885,
+                    "lon_deg": -74.99083009144607,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4542.203889890632,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 26.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 26.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.98953529821701,
+                    "lon_deg": -74.98466048555639,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4104.10700383142,
+                    "alt_hae_ft": 4104.10700383142,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 27.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 27.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 27.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 27.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 27.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 27.958,
+                    "alt_pres_ft": 4540.946450255891
+                }
+            }
+        },
+        {
+            "report_time": 27.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 27.96,
+                    "lat_deg": 40.01327338150844,
+                    "lon_deg": -74.99049043218247,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4540.946450255891,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 27.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 27.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.989908978292554,
+                    "lon_deg": -74.98514971043667,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4094.2699320928123,
+                    "alt_hae_ft": 4094.2699320928123,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 28.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 28.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 28.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 28.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 28.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 28.958,
+                    "alt_pres_ft": 4539.68901062115
+                }
+            }
+        },
+        {
+            "report_time": 28.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 28.96,
+                    "lat_deg": 40.01374743084803,
+                    "lon_deg": -74.9901507705597,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4539.68901062115,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 28.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 28.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.9902826583681,
+                    "lon_deg": -74.9856389379933,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4084.4328603542044,
+                    "alt_hae_ft": 4084.4328603542044,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 29.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 29.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 29.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 29.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 29.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 29.958,
+                    "alt_pres_ft": 4538.4315709864095
+                }
+            }
+        },
+        {
+            "report_time": 29.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 29.96,
+                    "lat_deg": 40.014221480187615,
+                    "lon_deg": -74.98981110657769,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4538.4315709864095,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 29.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 29.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99065633844365,
+                    "lon_deg": -74.98612816822632,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4074.5957886155966,
+                    "alt_hae_ft": 4074.5957886155966,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 30.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 30.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 30.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 30.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 30.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 30.958,
+                    "alt_pres_ft": 4537.174131351669
+                }
+            }
+        },
+        {
+            "report_time": 30.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 30.96,
+                    "lat_deg": 40.0146955295272,
+                    "lon_deg": -74.9894714402364,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4537.174131351669,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 30.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 30.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.9910300185192,
+                    "lon_deg": -74.98661740113579,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4064.7587168769887,
+                    "alt_hae_ft": 4064.7587168769887,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 31.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 31.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 31.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 31.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 31.958,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 31.958,
+                    "alt_pres_ft": 4535.916691716928
+                }
+            }
+        },
+        {
+            "report_time": 31.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 31.96,
+                    "lat_deg": 40.01516957886679,
+                    "lon_deg": -74.98913177153577,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4535.916691716928,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 31.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 31.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.991403698594745,
+                    "lon_deg": -74.98710663672175,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4054.921645138381,
+                    "alt_hae_ft": 4054.921645138381,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 32.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 32.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 32.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 32.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 32.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 32.958000000000006,
+                    "alt_pres_ft": 4534.659252082187
+                }
+            }
+        },
+        {
+            "report_time": 32.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 32.96,
+                    "lat_deg": 40.01564362820638,
+                    "lon_deg": -74.98879210047573,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4534.659252082187,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 32.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 32.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99177737867029,
+                    "lon_deg": -74.98759587498427,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4045.084573399773,
+                    "alt_hae_ft": 4045.084573399773,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 33.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 33.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 33.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 33.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 33.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 33.958000000000006,
+                    "alt_pres_ft": 4533.401812447446
+                }
+            }
+        },
+        {
+            "report_time": 33.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 33.96,
+                    "lat_deg": 40.016117677545964,
+                    "lon_deg": -74.98845242705625,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4533.401812447446,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 33.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 33.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99215105874584,
+                    "lon_deg": -74.98808511592337,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4035.247501661165,
+                    "alt_hae_ft": 4035.247501661165,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 34.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 34.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 34.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 34.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 34.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 34.958000000000006,
+                    "alt_pres_ft": 4532.144372812705
+                }
+            }
+        },
+        {
+            "report_time": 34.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 34.96,
+                    "lat_deg": 40.01659172688555,
+                    "lon_deg": -74.98811275127724,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4532.144372812705,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 34.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 34.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99252473882139,
+                    "lon_deg": -74.98857435953913,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4025.4104299225573,
+                    "alt_hae_ft": 4025.4104299225573,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 35.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 35.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 35.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 35.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 35.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 35.958000000000006,
+                    "alt_pres_ft": 4530.886933177964
+                }
+            }
+        },
+        {
+            "report_time": 35.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 35.96,
+                    "lat_deg": 40.01706577622514,
+                    "lon_deg": -74.98777307313867,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4530.886933177964,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 35.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 35.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.992898418896935,
+                    "lon_deg": -74.98906360583157,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4015.5733581839495,
+                    "alt_hae_ft": 4015.5733581839495,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 36.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 36.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 36.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 36.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 36.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 36.958000000000006,
+                    "alt_pres_ft": 4529.629493543223
+                }
+            }
+        },
+        {
+            "report_time": 36.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 36.96,
+                    "lat_deg": 40.017539825564725,
+                    "lon_deg": -74.98743339264048,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4529.629493543223,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 36.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 36.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99327209897248,
+                    "lon_deg": -74.98955285480078,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 4005.7362864453416,
+                    "alt_hae_ft": 4005.7362864453416,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 37.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 37.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 37.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 37.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 37.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 37.958000000000006,
+                    "alt_pres_ft": 4528.3720539084825
+                }
+            }
+        },
+        {
+            "report_time": 37.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 37.96,
+                    "lat_deg": 40.01801387490431,
+                    "lon_deg": -74.98709370978261,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4528.3720539084825,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 37.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 37.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99364577904803,
+                    "lon_deg": -74.99004210644678,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 3995.899214706734,
+                    "alt_hae_ft": 3995.899214706734,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 38.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 38.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 38.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 38.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 38.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 38.958000000000006,
+                    "alt_pres_ft": 4527.114614273742
+                }
+            }
+        },
+        {
+            "report_time": 38.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 38.96,
+                    "lat_deg": 40.0184879242439,
+                    "lon_deg": -74.98675402456502,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4527.114614273742,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 38.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 38.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.99401945912358,
+                    "lon_deg": -74.99053136076962,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 3986.062142968126,
+                    "alt_hae_ft": 3986.062142968126,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        },
+        {
+            "report_time": 39.956,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "OWNSHIP_DISCRETES",
+                "ownship_discretes": {
+                    "toa": 39.956,
+                    "v2v_uid": "111",
+                    "opflg": true,
+                    "turn_rate_limit_rad": 0.053,
+                    "vert_rate_limit_fps": 16.667
+                }
+            }
+        },
+        {
+            "report_time": 39.957,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "HEADING_OBS",
+                "heading_obs": {
+                    "toa": 39.957,
+                    "psi_rad": 0.5019004194225745,
+                    "heading_degraded": false
+                }
+            }
+        },
+        {
+            "report_time": 39.958000000000006,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "PRES_ALT_OBS",
+                "pres_alt_obs": {
+                    "toa": 39.958000000000006,
+                    "alt_pres_ft": 4525.857174639001
+                }
+            }
+        },
+        {
+            "report_time": 39.96,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "WGS84_OBS",
+                "wgs84_obs": {
+                    "toa": 39.96,
+                    "lat_deg": 40.01896197358349,
+                    "lon_deg": -74.98641433698762,
+                    "vel_ew_kts": 56.19139363809567,
+                    "vel_ns_kts": 102.39466858506432,
+                    "alt_hae_ft": 4525.857174639001,
+                    "alt_rate_hae_fps": -1.257439634740468,
+                    "nacp": 10,
+                    "nacv": 3,
+                    "vfom_m": 8.0
+                }
+            }
+        },
+        {
+            "report_time": 39.997,
+            "report_type": "Acas_sXu_DO396",
+            "acas_sxu_do396": {
+                "data_type": "VEHICLE_TO_VEHICLE_REPORT",
+                "vehicle_to_vehicle_report": {
+                    "toa": 39.997,
+                    "v2v_uid": "100",
+                    "mode_s": 100,
+                    "lat_deg": 39.994393139199126,
+                    "lon_deg": -74.99102061776937,
+                    "vel_ns_kts": 80.71490517358484,
+                    "vel_ew_kts": -80.96230180654743,
+                    "alt_pres_ft": 3976.225071229518,
+                    "alt_hae_ft": 3976.225071229518,
+                    "nic": 7,
+                    "nacp": 10,
+                    "nacv": 2,
+                    "sil": 3,
+                    "sda": 1,
+                    "q_int": 1,
+                    "classification": 1
+                }
+            }
+        }
+    ]
+}

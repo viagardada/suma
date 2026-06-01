@@ -97,7 +97,7 @@ def load_lookup_table(csv_path):
     return lookup_table
 
 def parse_action_str(action_str):
-    """解析 'H:2 | V:4' 返回水平动作和垂直动作编号"""
+    """ 'H:2 | V:4' 返回水平动作和垂直动作编号"""
     try:
         parts = action_str.split("|")
         h_code = int(parts[0].split(":")[1].strip())

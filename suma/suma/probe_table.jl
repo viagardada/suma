@@ -222,23 +222,24 @@ end
 
 params_file = "D:/workforce/project/suma/suma/suma/LookupTables/DO-396_paramsfile_acassxu_origami_20220908.txt"
 
-files_to_probe = [
-    "D:/workforce/project/suma/suma/example/Encounter4110010Aircraft1Input.json",
-    "D:/workforce/project/suma/suma/suma/Encounter1000003Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter1000009Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter1000010Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter2200001Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter2200002Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter2200003Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter2200004Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter4110010Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter4110006Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter4110007Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter4110008Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter4420001Aircraft1Input.json",
-    # "D:/workforce/project/suma/suma/suma/Encounter7000036Aircraft1Input.json"
-]
+# 指定要读取的文件夹路径
+target_folder = "D:/workforce/project/suma/suma/suma/example"
 
+# 读取文件夹中所有以 .json 结尾的文件
+files_to_probe = []
+if isdir(target_folder)
+    for file_name in readdir(target_folder)
+        if endswith(file_name, ".json")
+            push!(files_to_probe, joinpath(target_folder, file_name))
+        end
+    end
+else
+    println("警告：找不到指定的文件夹：$target_folder")
+end
+
+println("共检测到 $(length(files_to_probe)) 个文件需要探测。")
+
+# 批量执行探测
 for file in files_to_probe
     if isfile(file)
         run_probe(file, params_file)
