@@ -153,7 +153,7 @@ function run_probe(input_file::String, params_file::String)
             uid_val = haskey(data, "v2v_uid") ? data["v2v_uid"] : get(data, "remote_id", 0)
             ACAS_sXu.ReceiveDiscretes(stm, safe_parse_uint128(uid_val), 
                 Bool(data["opflg"]), UInt8(3), Float64(get(data, "turn_rate_limit_rad", 0.053)), Float64(get(data, "vert_rate_limit_fps", 16.667)), 
-                Bool(get(data, "surv_only_disp_on", false)), false, false, UInt8(15))
+                Bool(get(data, "surv_only_disp_on", true)), false, false, UInt8(15))
         elseif data_type == "WGS84_OBS"
             ACAS_sXu.ReceiveWgs84Observation(stm, Float64(data["lat_deg"]), Float64(data["lon_deg"]), 
                 Float64(data["vel_ew_kts"]), Float64(data["vel_ns_kts"]), Float64(data["alt_hae_ft"]), 
@@ -174,6 +174,25 @@ function run_probe(input_file::String, params_file::String)
                 Float64(data["vel_ew_kts"]), Float64(data["vel_ns_kts"]), UInt32(get(data, "nic", 6)), UInt32(get(data, "nacp", 7)), UInt32(get(data, "nacv", 1)), 
                 Float64(get(data, "vfom_m", 8.0)), UInt32(get(data, "sil", 1)), UInt32(get(data, "sda", 2)), safe_parse_uint128(uid_val), 
                 UInt32(get(data, "mode_s", 0)), Bool(get(data, "mode_s_non_icao", false)), Bool(get(data, "mode_s_valid", true)), UInt8(get(data, "classification", 1)), UInt32(get(data, "q_int", 25)), Float64(data["toa"]))
+        elseif data_type == "V2V_OPERATIONAL_STATUS_MESSAGE"
+            uid_val = haskey(data, "v2v_uid") ? data["v2v_uid"] : get(data, "remote_id", 0)
+            # 根据 ReceiveV2VOperationalStatusMessage(this::STM, ca_status::UInt8, sense::UInt8, type_capability::UInt8, priority::UInt8, equipment::UInt8, pilot_or_passengers::UInt8, v2v_uid::UInt128)
+            ACAS_sXu.ReceiveV2VOperationalStatusMessage(
+                stm,
+                UInt8(get(data, "ca_status", 1)),
+                UInt8(get(data, "sense", 1)),
+                UInt8(get(data, "type_capability", 1)),
+                UInt8(get(data, "priority", 0)),
+                UInt8(get(data, "equipment", 15)),
+                UInt8(get(data, "pilot_or_passengers", 0)),
+                safe_parse_uint128(uid_val)
+            )
+        # 向下兼容处理 DO396 旧版 capability (如果你用了 V2V_CAPABILITY_REPORT)
+        elseif data_type == "V2V_CAPABILITY_REPORT"
+            uid_val = haskey(data, "v2v_uid") ? data["v2v_uid"] : get(data, "remote_id", 0)
+            ACAS_sXu.ReceiveV2VOperationalStatusMessage(
+                stm, UInt8(1), UInt8(1), UInt8(1), UInt8(0), UInt8(15), UInt8(0), safe_parse_uint128(uid_val)
+            )
         end
         
         curTick = floor(Int, report_time - 0.00001)
@@ -225,12 +244,16 @@ params_file = "D:/workforce/project/suma/suma/suma/LookupTables/DO-396_paramsfil
 # 指定要读取的文件夹路径
 target_folder = "D:/workforce/project/suma/suma/suma/example"
 
-# 读取文件夹中所有以 .json 结尾的文件
+# 读取文件夹中新生成的场景文件（编号 >= 101）
 files_to_probe = []
 if isdir(target_folder)
     for file_name in readdir(target_folder)
-        if endswith(file_name, ".json")
-            push!(files_to_probe, joinpath(target_folder, file_name))
+        if endswith(file_name, ".json") && startswith(file_name, "AutoGen_Encounter_")
+            # 只处理新生成的场景（编号 >= 101）
+            m = match(r"AutoGen_Encounter_(\d+)\.json", file_name)
+            if m !== nothing && parse(Int, m.captures[1]) >= 101
+                push!(files_to_probe, joinpath(target_folder, file_name))
+            end
         end
     end
 else

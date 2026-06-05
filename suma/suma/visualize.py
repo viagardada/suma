@@ -2,6 +2,7 @@ import csv
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 # ----------------- 解决中文显示问题 -----------------
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS'] # 优先使用黑体或雅黑
@@ -107,28 +108,33 @@ def parse_action_str(action_str):
         return 0, 0
 
 def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
-    """极坐标水平空间渲染"""
+    """联合展示：左侧为极坐标水平空间，右侧为二维垂直剖面"""
     (r, z_rel, bearing_deg, psi_deg, 
      int_spd, own_spd, own_dz, int_dz, tau) = state
 
-    # 先离散化，只用于绘图显示网格边界
+    # 离散化获取网格边界
     discrete_key = discretize_state(*state)
-    r_bin, _, b_bin = discrete_key[0], discrete_key[1], discrete_key[2]
+    r_bin, a_bin, b_bin = discrete_key[0], discrete_key[1], discrete_key[2]
 
-    # [修改处]: 获取 h_code 和 v_code
+    # 获取 h_code 和 v_code
     h_code, v_code = parse_action_str(action_str)
     h_text = H_ACTION_MAP.get(h_code, f"UNKNOWN({h_code})")
     v_text = V_ACTION_MAP.get(v_code, f"UNKNOWN({v_code})")
 
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': 'polar'})
-    ax.set_theta_zero_location("N")
-    ax.set_theta_direction(-1)
+    # 创建 1行2列 的画布
+    fig = plt.figure(figsize=(16, 8))
+    
+    # ==========================================
+    # 子图1：水平方向极坐标图 (左侧)
+    # ==========================================
+    ax1 = fig.add_subplot(1, 2, 1, projection='polar')
+    ax1.set_theta_zero_location("N")
+    ax1.set_theta_direction(-1)
     
     # 画网格背景
-    # [修改点] 动态适配放大的雷达盘刻度
     if max_range_plot <= 1000:
         step = 100.0
-        label_step = 200.0  # 每 200 显示一次字符以防拥挤
+        label_step = 200.0
     elif max_range_plot <= 3000:
         step = 500.0
         label_step = 500.0
@@ -137,120 +143,131 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
         label_step = 1000.0
         
     r_ticks = np.arange(0, max_range_plot + step, step)
-    ax.set_yticks(r_ticks)
-    ax.set_yticklabels([str(int(i)) if i % label_step == 0 else "" for i in r_ticks], color='gray', size=8)
+    ax1.set_yticks(r_ticks)
+    ax1.set_yticklabels([str(int(i)) if i % label_step == 0 else "" for i in r_ticks], color='gray', size=8)
     
     theta_ticks = np.arange(0, 360, BEARING_BIN)
-    ax.set_xticks(np.radians(theta_ticks))
+    ax1.set_xticks(np.radians(theta_ticks))
     
-    # 目标真实落点
     target_theta = np.radians(bearing_deg if bearing_deg >= 0 else bearing_deg + 360)
     
-    # 网格掩码边界
-    # [修改点3]: 动态适应新的非均匀 Range 网格的绘制跨度
+    # 动态适应非均匀 Range 网格
     if r_bin <= 500.0:
         range_span = 100.0
-        # 特殊处理：如果是最小 100 的网格，里面画到0，外面画到150
         if r_bin == 100.0:
-            r_inner = 0.0
-            r_outer = 150.0 # 100.0 + 50.0
+            r_inner, r_outer = 0.0, 150.0
         else:
-            r_inner = r_bin - range_span / 2
-            r_outer = r_bin + range_span / 2
+            r_inner, r_outer = r_bin - range_span / 2, r_bin + range_span / 2
     elif r_bin <= 2000.0:
         range_span = 500.0
-        # 如果刚好衔接在 500 处，内侧和 100区间的要拼上
         if r_bin == 500.0:
-            r_inner = 450.0 # 500以内的精度是100，所以内侧边界画到 450
-            r_outer = 750.0 # (500 + 250)
+            r_inner, r_outer = 450.0, 750.0
         else:
-            r_inner = r_bin - range_span / 2
-            r_outer = r_bin + range_span / 2
+            r_inner, r_outer = r_bin - range_span / 2, r_bin + range_span / 2
     else:
         range_span = 1000.0
         if r_bin == 2000.0:
-            r_inner = 1750.0
-            r_outer = 2500.0
+            r_inner, r_outer = 1750.0, 2500.0
         else:
-            r_inner = r_bin - range_span / 2
-            r_outer = r_bin + range_span / 2
+            r_inner, r_outer = r_bin - range_span / 2, r_bin + range_span / 2
             
-    r_inner = max(0, r_inner) # 确保内圆不小于0
+    r_inner = max(0, r_inner)
     
-    # 确保中心角度被转换为 0-360 的绝对正角度
     theta_center_deg = float(b_bin) % 360.0
+    theta_start = np.radians(theta_center_deg - (BEARING_BIN / 2))
+    theta_end = np.radians(theta_center_deg + (BEARING_BIN / 2))
     
-    # 计算起始和结束角度
-    theta_start_deg = theta_center_deg - (BEARING_BIN / 2)
-    theta_end_deg = theta_center_deg + (BEARING_BIN / 2)
+    h_highlight_color = 'red' if h_code in [2, 3] else 'lightgreen'
     
-    # 转换为弧度
-    theta_start = np.radians(theta_start_deg)
-    theta_end = np.radians(theta_end_deg)
-    
-    # 高亮颜色（收到水平机动发红，不机动发绿）
-    highlight_color = 'red' if h_code in [2, 3] else 'lightgreen'
-    
-    # 处理扇区跨越 0 度（或跨越 360 度）的问题
-    if theta_start_deg < 0:
-        # 扇区跨越了正北方向（例如从 345° 到 15°）
-        # 需要分成两块画
-        theta_fill_1 = np.linspace(theta_start + 2*np.pi, 2*np.pi, 25)
-        theta_fill_2 = np.linspace(0, theta_end, 25)
-        ax.fill_between(theta_fill_1, r_inner, r_outer, color=highlight_color, alpha=0.4)
-        ax.fill_between(theta_fill_2, r_inner, r_outer, color=highlight_color, alpha=0.4, label='Active State Bin')
-    elif theta_end_deg > 360:
-        # 同理，如果上限超了 360（逻辑上其实和上面等价，但看取余情况）
-        theta_fill_1 = np.linspace(theta_start, 2*np.pi, 25)
-        theta_fill_2 = np.linspace(0, theta_end - 2*np.pi, 25)
-        ax.fill_between(theta_fill_1, r_inner, r_outer, color=highlight_color, alpha=0.4)
-        ax.fill_between(theta_fill_2, r_inner, r_outer, color=highlight_color, alpha=0.4, label='Active State Bin')
+    # 扇形高亮填充
+    if (theta_center_deg - BEARING_BIN / 2) < 0:
+        ax1.fill_between(np.linspace(theta_start + 2*np.pi, 2*np.pi, 25), r_inner, r_outer, color=h_highlight_color, alpha=0.4)
+        ax1.fill_between(np.linspace(0, theta_end, 25), r_inner, r_outer, color=h_highlight_color, alpha=0.4, label='H-State Bin')
+    elif (theta_center_deg + BEARING_BIN / 2) > 360:
+        ax1.fill_between(np.linspace(theta_start, 2*np.pi, 25), r_inner, r_outer, color=h_highlight_color, alpha=0.4)
+        ax1.fill_between(np.linspace(0, theta_end - 2*np.pi, 25), r_inner, r_outer, color=h_highlight_color, alpha=0.4, label='H-State Bin')
     else:
-        # 正常的、没有跨越边界的扇区
-        theta_fill = np.linspace(theta_start, theta_end, 50)
-        ax.fill_between(theta_fill, r_inner, r_outer, color=highlight_color, alpha=0.4, label='Active State Bin')
+        ax1.fill_between(np.linspace(theta_start, theta_end, 50), r_inner, r_outer, color=h_highlight_color, alpha=0.4, label='H-State Bin')
     
-    # 绘制两机位置
-    ax.scatter(0, 0, c='blue', s=200, zorder=5, label='Ownship')
-    ax.scatter(target_theta, r, c='red', s=100, marker='x', zorder=5, label='Intruder (Exact)')
+    ax1.scatter(0, 0, c='blue', s=200, zorder=5, label='Ownship')
+    ax1.scatter(target_theta, r, c='red', s=100, marker='x', zorder=5, label='Intruder')
 
-    # 绘制航向箭头
     arrow_length = max_range_plot * 0.2
-    target_x_cart = r * np.sin(target_theta)
-    target_y_cart = r * np.cos(target_theta)
     target_abs_heading_rad = np.radians(psi_deg if psi_deg >= 0 else psi_deg + 360)
-    target_end_x_cart = target_x_cart + arrow_length * np.sin(target_abs_heading_rad)
-    target_end_y_cart = target_y_cart + arrow_length * np.cos(target_abs_heading_rad)
+    target_end_x_cart = r * np.sin(target_theta) + arrow_length * np.sin(target_abs_heading_rad)
+    target_end_y_cart = r * np.cos(target_theta) + arrow_length * np.cos(target_abs_heading_rad)
     
-    theta_end_arrow = np.arctan2(target_end_x_cart, target_end_y_cart)
-    r_end_arrow = np.hypot(target_end_x_cart, target_end_y_cart)
-    
-    ax.annotate('',
-                xy=(theta_end_arrow, r_end_arrow),
+    ax1.annotate('',
+                xy=(np.arctan2(target_end_x_cart, target_end_y_cart), np.hypot(target_end_x_cart, target_end_y_cart)),
                 xytext=(target_theta, r),
-                arrowprops=dict(facecolor='red', edgecolor='red', shrink=0.0, width=1.5, headwidth=6),
-                zorder=4)
+                arrowprops=dict(facecolor='red', edgecolor='red', shrink=0.0, width=1.5, headwidth=6), zorder=4)
 
-    # 标签配置
-    # [修改处]: 将垂直动作追加到标题中
-    plt.title(f"Horizontal State Space (Polar)\nAction: {action_str}\n  H: {h_text}\n  V: {v_text}", 
-              fontsize=13, fontweight='bold', pad=20)
+    ax1.set_ylim(0, max_range_plot)
+    ax1.set_title(f"Horizontal Control (Polar)\nH: {h_text}", fontsize=12, fontweight='bold', pad=15)
+    
+    # ==========================================
+    # 子图2：垂直方向二维图 (右侧)
+    # ==========================================
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.grid(True, linestyle='--', alpha=0.6)
+    
+    # 计算相对高度的上下边界（离散网格边界）
+    alt_bottom = a_bin - ALT_BIN / 2
+    alt_top = a_bin + ALT_BIN / 2
+    
+    # 垂直建议高亮颜色：如果有特定控制指令 (v_code >= 2)，显示红色表示警告或干预
+    v_highlight_color = 'red' if v_code >= 2 else 'lightgreen'
+    
+    # 矩形区域 (Range_inner -> Range_outer, Alt_bottom -> Alt_top)
+    rect = Rectangle((r_inner, alt_bottom), (r_outer - r_inner), (alt_top - alt_bottom),
+                     color=v_highlight_color, alpha=0.4, label='V-State Bin')
+    ax2.add_patch(rect)
+    
+    # 绘制两机位置 (横轴是距离，纵轴是本机的相对高度)
+    ax2.scatter(0, 0, c='blue', s=200, zorder=5, label='Ownship')
+    ax2.scatter(r, z_rel, c='red', s=100, marker='x', zorder=5, label='Intruder')
+    
+    # 用箭头展示两机的垂直升降趋势（时间尺度放大，假设 5秒 的趋势）
+    time_scale = 5.0
+    ax2.annotate('', xy=(r, z_rel + int_dz * time_scale), xytext=(r, z_rel),
+                 arrowprops=dict(facecolor='red', edgecolor='red', width=1.5, headwidth=6), zorder=4)
+    ax2.annotate('', xy=(0, own_dz * time_scale), xytext=(0, 0),
+                 arrowprops=dict(facecolor='blue', edgecolor='blue', width=1.5, headwidth=6), zorder=4)
+
+    # 动态适应垂直Y轴和水平X轴范围
+    max_alt_plot = max(abs(z_rel) + 300, 1000)
+    ax2.set_xlim(-100, max_range_plot)
+    ax2.set_ylim(-max_alt_plot, max_alt_plot)
+    
+    ax2.set_xlabel("Horizontal Range (ft)", fontsize=11)
+    ax2.set_ylabel("Relative Altitude (ft)", fontsize=11)
+    ax2.axhline(0, color='black', linewidth=1, zorder=1) # 本机高度基准线
+    ax2.set_title(f"Vertical Profile (Range vs Rel-Alt)\nV: {v_text}", fontsize=12, fontweight='bold', pad=15)
+    
+    # ==========================================
+    # 全局信息和图例
+    # ==========================================
+    fig.suptitle(f"State Rendering for Collision Avoidance\nAction: {action_str}", fontsize=14, fontweight='bold')
     
     info_text = (
         f"Real State:\n"
         f"  Range: {r} ft\n"
+        f"  Rel Alt: {z_rel} ft\n"
         f"  Bearing: {bearing_deg}°\n"
         f"  Psi: {psi_deg}°\n\n"
         f"Discretized Into:\n"
         f"  Range Bin: {r_bin}\n"
-        f"  Bearing Bin: {b_bin}°"
+        f"  Bearing Bin: {b_bin}°\n"
+        f"  Alt Bin: {a_bin} ft"
     )
-    plt.text(-0.15, -0.1, info_text, transform=ax.transAxes, fontsize=10,
-             bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray'))
+    plt.figtext(0.02, 0.05, info_text, fontsize=10, bbox=dict(facecolor='white', alpha=0.9, edgecolor='gray'))
 
-    ax.set_ylim(0, max_range_plot)
-    ax.legend(loc='lower right', bbox_to_anchor=(1.3, 0.0))
+    ax1.legend(loc='lower right', bbox_to_anchor=(1.35, 0.0))
+    ax2.legend(loc='upper right')
+    
     plt.tight_layout()
+    # 调整一点顶部间距以便放下总标题
+    plt.subplots_adjust(top=0.88, bottom=0.15) 
     plt.show()
 
 if __name__ == "__main__":
