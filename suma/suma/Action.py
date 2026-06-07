@@ -38,10 +38,12 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     own_dz_bin = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
-    # 原本: tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
-    # 修改为:
-    tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
-    tau_bin = max(TAU_BIN, tau_bin) # 兜底，最少给 5.0 秒的高危判定
+    # tau < 0（两机正在远离）强制赋值为 -1，否则正常离散化
+    if tau < 0:
+        tau_bin = -1.0
+    else:
+        tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
+        tau_bin = max(TAU_BIN, tau_bin) # 兜底，最少给 5.0 秒的高危判定
     
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 

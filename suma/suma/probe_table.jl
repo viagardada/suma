@@ -62,9 +62,13 @@ function discretize_state(r::Float64, z::Float64, b::Float64, psi::Float64, int_
     own_dz_bin  = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin  = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
-    # 限制 Tau 的最大离散值为 100.0，并将最小值保底为 TAU_BIN (5.0 秒)
-    tau_bin = tau >= 100.0 ? 100.0 : round(tau / TAU_BIN) * TAU_BIN
-    tau_bin = max(TAU_BIN, tau_bin) # 兜底，防止出现 0.0
+    # tau < 0（两机正在远离，含 tau_h = 999.0 的情况）强制赋值为 -1.0，否则正常离散化
+    if tau < 0.0
+        tau_bin = -1.0
+    else
+        tau_bin = tau >= 100.0 ? 100.0 : round(tau / TAU_BIN) * TAU_BIN
+        tau_bin = max(TAU_BIN, tau_bin) # 兜底，防止出现 0.0
+    end
 
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 end
@@ -111,7 +115,7 @@ function extract_threat_state(trm_input::ACAS_sXu.TRMInput)
         # 简单横向径向接近率求 Tau (t = -r / r_dot)
         # 注意需要防范 r_dot 为负面逼近的情况
         dot_r = (int_vE * sin(b_rad) + int_vN * cos(b_rad)) - own_speed 
-        tau_h = (dot_r < -0.1) ? (-r_ground / dot_r) : 999.0 # 无限大代表不会相撞
+        tau_h = (dot_r < -0.1) ? (-r_ground / dot_r) : -1.0
         
         # 7. (可选) 历史告警 prev_adv 
         # 此处如果要提取 prev_adv，需要传入 trm_report 或者维护上一时刻状态。
@@ -244,14 +248,14 @@ params_file = "D:/workforce/project/suma/suma/suma/LookupTables/DO-396_paramsfil
 # 指定要读取的文件夹路径
 target_folder = "D:/workforce/project/suma/suma/suma/example"
 
-# 读取文件夹中新生成的场景文件（编号 >= 101）
+# 读取文件夹中新生成的场景文件
 files_to_probe = []
 if isdir(target_folder)
     for file_name in readdir(target_folder)
         if endswith(file_name, ".json") && startswith(file_name, "AutoGen_Encounter_")
-            # 只处理新生成的场景（编号 >= 101）
+            # 只处理新生成的场景
             m = match(r"AutoGen_Encounter_(\d+)\.json", file_name)
-            if m !== nothing && parse(Int, m.captures[1]) >= 101
+            if m !== nothing && parse(Int, m.captures[1]) >= 0
                 push!(files_to_probe, joinpath(target_folder, file_name))
             end
         end

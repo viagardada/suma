@@ -65,9 +65,12 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     own_dz_bin = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
-    # [修改点2]: Tau 的最高保底和最低兜底 5.0
-    tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
-    tau_bin = max(TAU_BIN, tau_bin)
+    # [修改点2]: Tau 处理：tau < 0（两机正在远离）强制赋值为 -1，否则正常离散化
+    if tau < 0:
+        tau_bin = -1.0
+    else:
+        tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
+        tau_bin = max(TAU_BIN, tau_bin)
     
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
 
@@ -277,7 +280,7 @@ if __name__ == "__main__":
     
     # === 测试场景 ===
     # 状态: (距离, 相高, 方位, 偏航, 目标速, 本机速, 本机升降, 目标升降, Tau)
-    state = (3000.0, -100.0, 0.0, 180.0, 50.0, 50.0, 20.0, 20.0, 40.0)
+    state = (1500.0, -200.0, 90.0, -150.0, 200.0, 350.0, 20.0, 20.0, 10.0)
     
     # 动态查表，缺省时默认为 H:0 | V:0
     discrete_key = discretize_state(*state)
