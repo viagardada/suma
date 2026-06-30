@@ -1,15 +1,18 @@
 import csv
 import sys
+import json
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from matplotlib.animation import FuncAnimation
 
 # ----------------- 解决中文显示问题 -----------------
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS'] # 优先使用黑体或雅黑
-plt.rcParams['axes.unicode_minus'] = False # 正常显示负号
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
+plt.rcParams['axes.unicode_minus'] = False
 # ----------------------------------------------------
 
-# --- 动作字典映射 (方便人类阅读) ---
+# --- 动作字典映射 ---
 H_ACTION_MAP = {
     0: "NO ADVISORY (安全)",
     1: "CLEAR OF CONFLICT (解除)",
@@ -18,7 +21,6 @@ H_ACTION_MAP = {
     4: "STRAIGHT (保持直飞)"
 }
 
-#  垂直动作字典映射
 V_ACTION_MAP = {
     0: "NO ADVISORY (安全/维持)",
     1: "CLEAR OF CONFLICT (解除)",
@@ -30,7 +32,7 @@ V_ACTION_MAP = {
     7: "CROSSING DESCEND (交叉下降)"
 }
 
-# --- 离散化网格设置 (务必与 probe_table.jl 中保持绝对一致) ---
+# --- 离散化网格设置 ---
 RANGE_BIN     = 500.0
 ALT_BIN       = 100.0
 BEARING_BIN   = 30.0
@@ -40,9 +42,12 @@ OWN_SPEED_BIN = 50.0
 V_RATE_BIN    = 10.0
 TAU_BIN       = 5.0
 
+KT_TO_FPS = 1.68781
+RAD_TO_DEG = 180.0 / math.pi
+
+
 def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     """将连续物理状态转换为完整的 9 维离散状态元组"""
-    # [修改点1]: 动态不均匀 Range 划分, 且设置下边界为 100.0 ft
     if r <= 500.0:
         r_bin = round(r / 100.0) * 100.0
         r_bin = max(100.0, r_bin)
@@ -65,7 +70,6 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
     own_dz_bin = round(own_dz / V_RATE_BIN) * V_RATE_BIN
     int_dz_bin = round(int_dz / V_RATE_BIN) * V_RATE_BIN
     
-    # [修改点2]: Tau 处理：tau < 0（两机正在远离）强制赋值为 -1，否则正常离散化
     if tau < 0:
         tau_bin = -1.0
     else:
@@ -73,6 +77,7 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
         tau_bin = max(TAU_BIN, tau_bin)
     
     return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin, own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
+
 
 def load_lookup_table(csv_path):
     """从 CSV 加载轻量化查询表为内存字典"""
@@ -100,8 +105,9 @@ def load_lookup_table(csv_path):
     print(f"成功加载查询表，共包含 {len(lookup_table)} 条决策规则。")
     return lookup_table
 
+
 def parse_action_str(action_str):
-    """ 'H:2 | V:4' 返回水平动作和垂直动作编号"""
+    """'H:2 | V:4' -> (h_code, v_code)"""
     try:
         parts = action_str.split("|")
         h_code = int(parts[0].split(":")[1].strip())
@@ -110,31 +116,277 @@ def parse_action_str(action_str):
     except:
         return 0, 0
 
-def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
+
+def parse_example_file(filepath):
+    """
+    解析 example JSON 文件，提取每个时间戳下的完整状态。
+    
+    返回:
+        timestamps: list of float
+        states: list of 9-tuple (r, z_rel, bearing, psi, int_spd, own_spd, own_dz, int_dz, tau)
+    """
+    with open(filepath, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    reports = data.get('acasx_reports', [])
+    if not reports:
+        print(f"错误：文件中没有 acasx_reports 数据")
+        sys.exit(1)
+    
+    # 按 report_time 分组
+    time_groups = {}
+    for report in reports:
+        t = report.get('report_time', 0.0)
+        t_rounded = round(t * 10) / 10.0
+        if t_rounded not in time_groups:
+            time_groups[t_rounded] = []
+        time_groups[t_rounded].append(report)
+    
+    sorted_times = sorted(time_groups.keys())
+    
+    # 缓存上一个已知值
+    last_own_alt = 0.0
+    last_own_vel_ns_kts = 0.0
+    last_own_vel_ew_kts = 0.0
+    last_own_alt_rate_fps = 0.0
+    last_heading_rad = 0.0
+    last_int_vel_ns_kts = 0.0
+    last_int_vel_ew_kts = 0.0
+    last_int_alt_rate_fps = 0.0
+    
+    states = []
+    timestamps = []
+    stopped_at_cpa = False  # 是否已过最近点
+    had_positive_tau = False  # 是否有过正的tau值
+    
+    for t in sorted_times:
+        # 如果已经过了最近点（开始远离）且是最佳演示部分，不再添加
+        if stopped_at_cpa:
+            continue
+        group = time_groups[t]
+        
+        heading_rad = last_heading_rad
+        own_vel_ns_kts = last_own_vel_ns_kts
+        own_vel_ew_kts = last_own_vel_ew_kts
+        own_alt_rate_fps = last_own_alt_rate_fps
+        int_vel_ns_kts = last_int_vel_ns_kts
+        int_vel_ew_kts = last_int_vel_ew_kts
+        int_alt_rate_fps = last_int_alt_rate_fps
+        
+        range_ft = None
+        rel_z_ft = None
+        azimuth_rad = None
+        dgr_fps = None
+        
+        # 用于经纬度计算
+        own_lat_deg = None
+        own_lon_deg = None
+        own_alt_ft = None
+        int_lat_deg = None
+        int_lon_deg = None
+        int_alt_ft = None
+        int_vel_ns_from_v2v = None
+        int_vel_ew_from_v2v = None
+        
+        for report in group:
+            rtype = report.get('report_type', '')
+            # 兼容两种报告格式：Acas_sXu_DO396 和 Acas_sXu_V3R0
+            if rtype not in ('Acas_sXu_DO396', 'Acas_sXu_V3R0'):
+                continue
+            payload = report.get('acas_sxu_do396') or report.get('acas_sxu_v3r0') or {}
+            dtype = payload.get('data_type', '')
+            
+            if dtype == 'HEADING_OBS':
+                psi_val = payload.get('heading_obs', {}).get('psi_rad', last_heading_rad)
+                heading_rad = psi_val if psi_val != '_NaN_' else heading_rad
+                last_heading_rad = heading_rad
+                
+            elif dtype == 'WGS84_OBS':
+                wgs = payload.get('wgs84_obs', {})
+                own_lat_deg = wgs.get('lat_deg', None)
+                own_lon_deg = wgs.get('lon_deg', None)
+                own_alt_ft = wgs.get('alt_hae_ft', None)
+                own_vel_ns_kts = wgs.get('vel_ns_kts', last_own_vel_ns_kts)
+                own_vel_ew_kts = wgs.get('vel_ew_kts', last_own_vel_ew_kts)
+                alt_rate = wgs.get('alt_rate_hae_fps', last_own_alt_rate_fps)
+                own_alt_rate_fps = alt_rate if alt_rate != '_NaN_' else own_alt_rate_fps
+                last_own_vel_ns_kts = own_vel_ns_kts
+                last_own_vel_ew_kts = own_vel_ew_kts
+                last_own_alt_rate_fps = own_alt_rate_fps
+                
+            elif dtype == 'PRES_ALT_OBS':
+                pa = payload.get('pres_alt_obs', {})
+                alt_val = pa.get('alt_pres_ft', None)
+                if alt_val is not None and alt_val != '_NaN_':
+                    own_alt_ft = alt_val
+                    
+            elif dtype == 'VEHICLE_TO_VEHICLE_REPORT':
+                v2v = payload.get('vehicle_to_vehicle_report', {})
+                int_lat_deg = v2v.get('lat_deg', int_lat_deg)
+                int_lon_deg = v2v.get('lon_deg', int_lon_deg)
+                alt_pres = v2v.get('alt_pres_ft', None)
+                if alt_pres is not None and alt_pres != '_NaN_':
+                    int_alt_ft = alt_pres
+                # 从V2V中提取入侵机速度
+                vn = v2v.get('vel_ns_kts', None)
+                ve = v2v.get('vel_ew_kts', None)
+                if vn is not None and vn != '_NaN_':
+                    int_vel_ns_from_v2v = vn
+                if ve is not None and ve != '_NaN_':
+                    int_vel_ew_from_v2v = ve
+                    
+            elif dtype == 'OWN_REL_NON_COOP_TRACK':
+                track = payload.get('own_rel_non_coop_track', {})
+                rng = track.get('range_ft', None)
+                az = track.get('azimuth_rad', None)
+                dgr = track.get('dgr_fps', None)
+                rel_z = track.get('rel_z_ft', None)
+                if rng is not None and rng != '_NaN_':
+                    range_ft = rng
+                if az is not None and az != '_NaN_':
+                    azimuth_rad = az
+                if dgr is not None and dgr != '_NaN_':
+                    dgr_fps = dgr
+                if rel_z is not None and rel_z != '_NaN_':
+                    rel_z_ft = rel_z
+                rel_dz = track.get('rel_dz_fps', None)
+                if rel_dz is not None and rel_dz != '_NaN_':
+                    int_alt_rate_fps = own_alt_rate_fps + rel_dz
+                    last_int_alt_rate_fps = int_alt_rate_fps
+                    
+            elif dtype == 'ABSOLUTE_GEODETIC_TRACK':
+                agt = payload.get('absolute_geodetic_track', {})
+                vel_ns = agt.get('vel_ns_kts', last_int_vel_ns_kts)
+                vel_ew = agt.get('vel_ew_kts', last_int_vel_ew_kts)
+                if vel_ns != '_NaN_' and vel_ew != '_NaN_':
+                    int_vel_ns_kts = vel_ns
+                    int_vel_ew_kts = vel_ew
+                    last_int_vel_ns_kts = int_vel_ns_kts
+                    last_int_vel_ew_kts = int_vel_ew_kts
+                alt_rate_pres = agt.get('alt_rate_pres_fps', None)
+                if alt_rate_pres is not None and alt_rate_pres != '_NaN_':
+                    int_alt_rate_fps = alt_rate_pres
+                    last_int_alt_rate_fps = int_alt_rate_fps
+        
+        # 如果没有直接 track 数据，尝试从经纬度计算
+        if range_ft is None or azimuth_rad is None:
+            if own_lat_deg is not None and own_lon_deg is not None and int_lat_deg is not None and int_lon_deg is not None:
+                # 使用近似公式计算距离和方位
+                lat1 = math.radians(own_lat_deg)
+                lon1 = math.radians(own_lon_deg)
+                lat2 = math.radians(int_lat_deg)
+                lon2 = math.radians(int_lon_deg)
+                
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                
+                # Haversine 距离（单位：米）
+                a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+                R_earth_m = 6371000.0
+                dist_m = R_earth_m * c
+                range_ft = dist_m * 3.28084  # 米转英尺
+                
+                # 方位角（正北为0，顺时针）
+                az_rad = math.atan2(math.sin(dlon) * math.cos(lat2),
+                                    math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon))
+                azimuth_rad = az_rad
+                
+                # 相对高度
+                if own_alt_ft is not None and int_alt_ft is not None:
+                    rel_z_ft = int_alt_ft - own_alt_ft
+                else:
+                    rel_z_ft = 0.0
+                
+                # 如果从 V2V 获取了入侵机速度，更新
+                if int_vel_ns_from_v2v is not None:
+                    int_vel_ns_kts = int_vel_ns_from_v2v
+                    last_int_vel_ns_kts = int_vel_ns_kts
+                if int_vel_ew_from_v2v is not None:
+                    int_vel_ew_kts = int_vel_ew_from_v2v
+                    last_int_vel_ew_kts = int_vel_ew_kts
+        
+        if range_ft is None or azimuth_rad is None:
+            continue
+        
+        bearing_deg = azimuth_rad * RAD_TO_DEG
+        psi_deg = heading_rad * RAD_TO_DEG
+        
+        own_spd = math.hypot(own_vel_ns_kts, own_vel_ew_kts) * KT_TO_FPS
+        if own_spd < 1.0:
+            own_spd = 100.0
+        
+        int_spd = math.hypot(int_vel_ns_kts, int_vel_ew_kts) * KT_TO_FPS
+        if int_spd < 1.0:
+            int_spd = 100.0
+        
+        z_rel = rel_z_ft if rel_z_ft is not None else 0.0
+        own_dz = own_alt_rate_fps
+        int_dz = int_alt_rate_fps
+        
+        # 计算入侵者相对于本机的运动方向（相对速度方向）
+        # 极坐标角度：0°=正北，顺时针
+        rel_vel_ns = int_vel_ns_kts - own_vel_ns_kts
+        rel_vel_ew = int_vel_ew_kts - own_vel_ew_kts
+        int_rel_heading_deg = math.atan2(rel_vel_ew, rel_vel_ns) * RAD_TO_DEG
+        
+        # 如果有直接的 dgr_fps（来自 track 数据），直接计算 tau
+        if dgr_fps is not None and dgr_fps < 0 and range_ft > 0:
+            tau = range_ft / (-dgr_fps)
+        else:
+            # 尝试用相邻帧的距离差估算接近率（适用于无 track 数据的 V3R0 文件）
+            tau = -1.0
+            if len(states) > 0 and len(timestamps) > 0:
+                prev_range = states[-1][0]
+                prev_t = timestamps[-1]
+                dt = t - prev_t
+                if dt > 0:
+                    # 计算接近率（正值表示距离在缩小）
+                    dgr_est = (prev_range - range_ft) / dt
+                    if dgr_est > 0 and range_ft > 0:
+                        tau = range_ft / dgr_est
+        
+        state = (range_ft, z_rel, bearing_deg, psi_deg,
+                 int_spd, own_spd, own_dz, int_dz, tau, int_rel_heading_deg)
+        states.append(state)
+        timestamps.append(t)
+        
+        # 检测最近点（CPA）：用实际 range 变化判断
+        # 当 range 开始增大（从接近变为远离）时停止截断
+        if range_ft is not None and len(states) >= 2:
+            prev_range = states[-2][0]
+            if range_ft > prev_range and len(states) > 1:
+                stopped_at_cpa = True
+    
+    print(f"成功解析 example 文件，共提取 {len(states)} 个时间步。")
+    if timestamps:
+        print(f"时间范围: {timestamps[0]:.1f}s ~ {timestamps[-1]:.1f}s")
+    else:
+        print("警告：未提取到任何有效状态数据（可能文件中没有 OWN_REL_NON_COOP_TRACK 数据）")
+    
+    return timestamps, states
+
+
+def plot_polar_state(ax1, ax2, state, action_str="H:0 | V:0", max_range_plot=5000,
+                     info_text_extra=""):
     """联合展示：左侧为极坐标水平空间，右侧为二维垂直剖面"""
     (r, z_rel, bearing_deg, psi_deg, 
-     int_spd, own_spd, own_dz, int_dz, tau) = state
+     int_spd, own_spd, own_dz, int_dz, tau, int_rel_heading_deg) = state
 
-    # 离散化获取网格边界
-    discrete_key = discretize_state(*state)
+    discrete_key = discretize_state(*state[:9])
     r_bin, a_bin, b_bin = discrete_key[0], discrete_key[1], discrete_key[2]
 
-    # 获取 h_code 和 v_code
     h_code, v_code = parse_action_str(action_str)
     h_text = H_ACTION_MAP.get(h_code, f"UNKNOWN({h_code})")
     v_text = V_ACTION_MAP.get(v_code, f"UNKNOWN({v_code})")
-
-    # 创建 1行2列 的画布
-    fig = plt.figure(figsize=(16, 8))
     
-    # ==========================================
-    # 子图1：水平方向极坐标图 (左侧)
-    # ==========================================
-    ax1 = fig.add_subplot(1, 2, 1, projection='polar')
+    ax1.clear()
+    ax2.clear()
+    
+    # ---- 子图1：极坐标水平方向 ----
     ax1.set_theta_zero_location("N")
     ax1.set_theta_direction(-1)
     
-    # 画网格背景
     if max_range_plot <= 1000:
         step = 100.0
         label_step = 200.0
@@ -182,7 +434,6 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
     
     h_highlight_color = 'red' if h_code in [2, 3] else 'lightgreen'
     
-    # 扇形高亮填充
     if (theta_center_deg - BEARING_BIN / 2) < 0:
         ax1.fill_between(np.linspace(theta_start + 2*np.pi, 2*np.pi, 25), r_inner, r_outer, color=h_highlight_color, alpha=0.4)
         ax1.fill_between(np.linspace(0, theta_end, 25), r_inner, r_outer, color=h_highlight_color, alpha=0.4, label='H-State Bin')
@@ -196,9 +447,10 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
     ax1.scatter(target_theta, r, c='red', s=100, marker='x', zorder=5, label='Intruder')
 
     arrow_length = max_range_plot * 0.2
-    target_abs_heading_rad = np.radians(psi_deg if psi_deg >= 0 else psi_deg + 360)
-    target_end_x_cart = r * np.sin(target_theta) + arrow_length * np.sin(target_abs_heading_rad)
-    target_end_y_cart = r * np.cos(target_theta) + arrow_length * np.cos(target_abs_heading_rad)
+    # int_rel_heading_deg 是相对速度方向（极坐标角度：0°=正北，顺时针）
+    arrow_theta_rad = np.radians(int_rel_heading_deg if int_rel_heading_deg >= 0 else int_rel_heading_deg + 360)
+    target_end_x_cart = r * np.sin(target_theta) + arrow_length * np.sin(arrow_theta_rad)
+    target_end_y_cart = r * np.cos(target_theta) + arrow_length * np.cos(arrow_theta_rad)
     
     ax1.annotate('',
                 xy=(np.arctan2(target_end_x_cart, target_end_y_cart), np.hypot(target_end_x_cart, target_end_y_cart)),
@@ -208,94 +460,260 @@ def plot_polar_state(state, action_str="H:0 | V:0", max_range_plot=5000):
     ax1.set_ylim(0, max_range_plot)
     ax1.set_title(f"Horizontal Control (Polar)\nH: {h_text}", fontsize=12, fontweight='bold', pad=15)
     
-    # ==========================================
-    # 子图2：垂直方向二维图 (右侧)
-    # ==========================================
-    ax2 = fig.add_subplot(1, 2, 2)
+    # ---- 子图2：垂直剖面 ----
     ax2.grid(True, linestyle='--', alpha=0.6)
     
-    # 计算相对高度的上下边界（离散网格边界）
     alt_bottom = a_bin - ALT_BIN / 2
     alt_top = a_bin + ALT_BIN / 2
     
-    # 垂直建议高亮颜色：如果有特定控制指令 (v_code >= 2)，显示红色表示警告或干预
     v_highlight_color = 'red' if v_code >= 2 else 'lightgreen'
     
-    # 矩形区域 (Range_inner -> Range_outer, Alt_bottom -> Alt_top)
     rect = Rectangle((r_inner, alt_bottom), (r_outer - r_inner), (alt_top - alt_bottom),
                      color=v_highlight_color, alpha=0.4, label='V-State Bin')
     ax2.add_patch(rect)
     
-    # 绘制两机位置 (横轴是距离，纵轴是本机的相对高度)
     ax2.scatter(0, 0, c='blue', s=200, zorder=5, label='Ownship')
     ax2.scatter(r, z_rel, c='red', s=100, marker='x', zorder=5, label='Intruder')
     
-    # 用箭头展示两机的垂直升降趋势（时间尺度放大，假设 5秒 的趋势）
     time_scale = 5.0
     ax2.annotate('', xy=(r, z_rel + int_dz * time_scale), xytext=(r, z_rel),
                  arrowprops=dict(facecolor='red', edgecolor='red', width=1.5, headwidth=6), zorder=4)
     ax2.annotate('', xy=(0, own_dz * time_scale), xytext=(0, 0),
                  arrowprops=dict(facecolor='blue', edgecolor='blue', width=1.5, headwidth=6), zorder=4)
 
-    # 动态适应垂直Y轴和水平X轴范围
     max_alt_plot = max(abs(z_rel) + 300, 1000)
     ax2.set_xlim(-100, max_range_plot)
     ax2.set_ylim(-max_alt_plot, max_alt_plot)
     
     ax2.set_xlabel("Horizontal Range (ft)", fontsize=11)
     ax2.set_ylabel("Relative Altitude (ft)", fontsize=11)
-    ax2.axhline(0, color='black', linewidth=1, zorder=1) # 本机高度基准线
+    ax2.axhline(0, color='black', linewidth=1, zorder=1)
     ax2.set_title(f"Vertical Profile (Range vs Rel-Alt)\nV: {v_text}", fontsize=12, fontweight='bold', pad=15)
     
-    # ==========================================
-    # 全局信息和图例
-    # ==========================================
-    fig.suptitle(f"State Rendering for Collision Avoidance\nAction: {action_str}", fontsize=14, fontweight='bold')
+    ax1.legend(loc='lower right', bbox_to_anchor=(1.35, 0.0), fontsize=8)
+    ax2.legend(loc='upper right', fontsize=8)
     
-    info_text = (
-        f"Real State:\n"
-        f"  Range: {r} ft\n"
-        f"  Rel Alt: {z_rel} ft\n"
-        f"  Bearing: {bearing_deg}°\n"
-        f"  Psi: {psi_deg}°\n\n"
-        f"Discretized Into:\n"
-        f"  Range Bin: {r_bin}\n"
-        f"  Bearing Bin: {b_bin}°\n"
-        f"  Alt Bin: {a_bin} ft"
-    )
-    plt.figtext(0.02, 0.05, info_text, fontsize=10, bbox=dict(facecolor='white', alpha=0.9, edgecolor='gray'))
+    info_lines = [
+        f"Real State:",
+        f"  Range: {r:.1f} ft ({r*0.3048:.1f} m)",
+        f"  Rel Alt: {z_rel:.1f} ft",
+        f"  Bearing: {bearing_deg:.1f}°",
+        f"  Psi: {psi_deg:.1f}°",
+        f"  Tau: {tau:.1f}s",
+        f"",
+        f"Discretized Into:",
+        f"  Range Bin: {r_bin} ft",
+        f"  Bearing Bin: {b_bin}°",
+        f"  Alt Bin: {a_bin} ft",
+    ]
+    if info_text_extra:
+        info_lines.append("")
+        info_lines.append(info_text_extra)
+    return "\n".join(info_lines)
 
-    ax1.legend(loc='lower right', bbox_to_anchor=(1.35, 0.0))
-    ax2.legend(loc='upper right')
-    
-    plt.tight_layout()
-    # 调整一点顶部间距以便放下总标题
-    plt.subplots_adjust(top=0.88, bottom=0.15) 
-    plt.show()
 
-if __name__ == "__main__":
-    # 加载 CSV 查询表
-    csv_file = "d:/workforce/project/suma/suma/my_lightweight_table.csv"
-    table = load_lookup_table(csv_file)
+def draw_risk_gauge(ax, tau, range_ft, z_rel):
+    """在指定坐标轴上绘制数字式风险仪表盘"""
+    ax.clear()
     
-    # === 测试场景 ===
-    # 状态: (距离, 相高, 方位, 偏航, 目标速, 本机速, 本机升降, 目标升降, Tau)
-    state = (1500.0, -200.0, 90.0, -150.0, 200.0, 350.0, 20.0, 20.0, 10.0)
+    # 计算三个风险因子 (0~1, 1=最危险)
+    if tau < 0:
+        tau_risk = 0.1
+    elif tau < 15:
+        tau_risk = 1.0
+    elif tau < 35:
+        tau_risk = 1.0 - (tau - 15) / 20.0 * 0.6
+    else:
+        tau_risk = 0.4 - min(tau - 35, 40) / 40.0 * 0.3
+        tau_risk = max(0.1, tau_risk)
     
-    # 动态查表，缺省时默认为 H:0 | V:0
-    discrete_key = discretize_state(*state)
-    action = table.get(discrete_key, "H:0 | V:0")
+    abs_range = abs(range_ft)
+    if abs_range < 1000:
+        range_risk = 1.0
+    elif abs_range < 3000:
+        range_risk = 1.0 - (abs_range - 1000) / 2000.0 * 0.6
+    else:
+        range_risk = 0.4 - min(abs_range - 3000, 2000) / 2000.0 * 0.3
+        range_risk = max(0.05, range_risk)
     
-    print(f"查表得到的动作为: {action}")
-    print("绘制极坐标状态图...")
+    abs_z = abs(z_rel)
+    if abs_z < 100:
+        alt_risk = 0.8
+    elif abs_z < 500:
+        alt_risk = 0.8 - (abs_z - 100) / 400.0 * 0.5
+    else:
+        alt_risk = 0.3 - min(abs_z - 500, 500) / 500.0 * 0.2
+        alt_risk = max(0.05, alt_risk)
     
-    # [修改点]: 动态调整图表的缩放大小，使得高亮区域可见
-    target_r = state[0]
-    if target_r <= 500.0:
-        plot_range = 800  # 极近距离时，只画半径 800，这样 150-250 的高亮扇区就非常明显了
-    elif target_r <= 2000.0:
+    risk = tau_risk * 0.5 + range_risk * 0.3 + alt_risk * 0.2
+    risk = min(1.0, max(0.0, risk))
+    risk_pct = risk * 100
+    
+    # 判断风险等级
+    if risk_pct >= 70:
+        level_text = "危险"
+        level_color = '#FF1744'
+        bg_color = '#FFEBEE'
+    elif risk_pct >= 40:
+        level_text = "注意"
+        level_color = '#FF9100'
+        bg_color = '#FFF3E0'
+    else:
+        level_text = "安全"
+        level_color = '#00C853'
+        bg_color = '#E8F5E9'
+    
+    # 绘制数字式仪表盘背景
+    rect = plt.Rectangle((-0.9, -0.6), 1.8, 1.4, facecolor=bg_color, 
+                          edgecolor=level_color, linewidth=3)
+    ax.add_patch(rect)
+    
+    # 风险百分比大字
+    ax.text(0, 0.50, f'{risk_pct:.0f}%', ha='center', va='center',
+            fontsize=42, fontweight='bold', color=level_color)
+    
+    # 风险等级标签
+    ax.text(0, 0.15, f'[[ {level_text} ]]', ha='center', va='center',
+            fontsize=16, fontweight='bold', color=level_color,
+            bbox=dict(facecolor='white', edgecolor=level_color, pad=5))
+    
+    # 关键指标
+    tau_str = f'{tau:.1f}s' if tau > 0 else '远离中'
+    ax.text(0, -0.12, f'τ: {tau_str}', ha='center', va='center',
+            fontsize=13, fontweight='bold', color='#333')
+    ax.text(0, -0.30, f'距离: {range_ft:.0f} ft', ha='center', va='center',
+            fontsize=12, color='#555')
+    ax.text(0, -0.47, f'相对高度: {z_rel:.0f} ft', ha='center', va='center',
+            fontsize=12, color='#555')
+    
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-0.65, 1.05)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_title("Collision Risk Gauge", fontsize=12, fontweight='bold', pad=10)
+    
+    return risk
+
+
+def animate_example(timestamps, states, actions, interval=500):
+    """使用 matplotlib 动画播放示例文件的所有时间步状态图"""
+    max_range = max(s[0] for s in states) * 1.2
+    if max_range <= 800:
+        plot_range = 800
+    elif max_range <= 2500:
         plot_range = 2500
     else:
         plot_range = 5000
+    
+    # 预提取所有 tau 值
+    all_taus = [s[8] for s in states]  # tau 是 state 的第9个元素
+    
+    fig = plt.figure(figsize=(16, 10))
+    # 2x2 网格: 极坐标, 垂直剖面, tau折线图, 风险仪表盘
+    ax1 = fig.add_subplot(2, 2, 1, projection='polar')
+    ax2 = fig.add_subplot(2, 2, 2)
+    ax3 = fig.add_subplot(2, 2, 3)
+    ax4 = fig.add_subplot(2, 2, 4)
+    
+    info_text_obj = plt.figtext(0.02, 0.07, "", fontsize=10,
+                                bbox=dict(facecolor='white', alpha=0.9, edgecolor='gray'))
+    suptitle_obj = fig.suptitle("", fontsize=14, fontweight='bold')
+    
+    def update(frame_idx):
+        state = states[frame_idx]
+        action = actions[frame_idx]
+        t = timestamps[frame_idx]
         
-    plot_polar_state(state, action, max_range_plot=plot_range)
+        info_extra = f"Frame: {frame_idx + 1}/{len(states)} | t = {t:.1f}s"
+        info_text = plot_polar_state(ax1, ax2, state, action,
+                                     max_range_plot=plot_range,
+                                     info_text_extra=info_extra)
+        
+        # 更新 tau 折线图
+        ax3.clear()
+        times_sofar = timestamps[:frame_idx + 1]
+        taus_sofar = all_taus[:frame_idx + 1]
+        
+        ax3.plot(times_sofar, taus_sofar, 'b-o', markersize=4, linewidth=1.5, label='τ (s)')
+        ax3.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
+        ax3.plot(t, all_taus[frame_idx], 'ro', markersize=8, zorder=5)
+        
+        ax3.set_xlim(timestamps[0], timestamps[-1])
+        valid_taus = [v for v in all_taus if v > 0]
+        if valid_taus:
+            y_min = min(-2, min(valid_taus) - 2)
+            y_max = max(10, max(valid_taus) + 5)
+        else:
+            y_min = -2
+            y_max = 10
+        ax3.set_ylim(y_min, y_max)
+        
+        ax3.set_xlabel("Time (s)", fontsize=11)
+        ax3.set_ylabel("τ (seconds)", fontsize=11)
+        ax3.set_title("Tau Over Time", fontsize=12, fontweight='bold')
+        ax3.grid(True, linestyle='--', alpha=0.6)
+        ax3.legend(loc='upper right', fontsize=9)
+        
+        # 更新风险仪表盘
+        r, z_rel, _, _, _, _, _, _, tau_val, _ = state
+        draw_risk_gauge(ax4, tau_val, r, z_rel)
+        
+        info_text_obj.set_text(info_text)
+        suptitle_obj.set_text(f"Encounter Playback — Time: {t:.1f}s\nRecommended Action: {action}")
+        
+        return ax1, ax2, ax3, ax4, info_text_obj, suptitle_obj
+    
+    ani = FuncAnimation(fig, update, frames=len(states),
+                        interval=interval, repeat=True, blit=False)
+    
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.88, bottom=0.1)
+    
+    print(f"开始播放动画 ({len(states)} 帧, {interval}ms 间隔)...")
+    print("关闭窗口退出")
+    plt.show()
+    return ani
+
+
+if __name__ == "__main__":
+    # ============================================================
+    # 【更换轨迹文件】只需修改下面 EXAMPLE_FILE 的路径即可
+    # ============================================================
+    EXAMPLE_FILE = "D:/workforce/project/suma/suma/suma/example/original/test/Synthetic_Encounter_001.json"
+    # ============================================================
+    
+    # 加载查询表
+    csv_file = "d:/workforce/project/suma/suma/my_lightweight_table.csv"
+    table = load_lookup_table(csv_file)
+    
+    # 确定输入文件（命令行参数优先）
+    if len(sys.argv) > 1 and not sys.argv[1].startswith("--"):
+        example_file = sys.argv[1]
+    else:
+        example_file = EXAMPLE_FILE
+    
+    interval = 200
+    for arg in sys.argv[1:]:
+        if arg.startswith("--interval="):
+            try:
+                interval = int(arg.split("=")[1])
+            except:
+                pass
+    print(f"解析 example 文件: {example_file}")
+    timestamps, states = parse_example_file(example_file)
+    
+    if len(states) == 0:
+        print("错误：未能提取任何有效状态数据")
+        sys.exit(1)
+    
+    # 查表获取每个时间步的推荐动作
+    actions = []
+    for state in states:
+        discrete_key = discretize_state(*state[:9])
+        action = table.get(discrete_key, "H:0 | V:0")
+        actions.append(action)
+    
+    print(f"共 {len(states)} 帧，间隔 {interval}ms")
+    
+    # 播放动画
+    animate_example(timestamps, states, actions, interval=interval)
