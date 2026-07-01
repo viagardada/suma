@@ -5,7 +5,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 
 # ----------------- 解决中文显示问题 -----------------
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
@@ -80,7 +80,7 @@ def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
 
 
 def load_lookup_table(csv_path):
-    """从 CSV 加载轻量化查询表为内存字典"""
+    """从 CSV 加载轻量化查询表为内存字典，并预先索引用于最近邻搜索"""
     lookup_table = {}
     try:
         with open(csv_path, 'r', encoding='utf-8') as f:
@@ -104,6 +104,41 @@ def load_lookup_table(csv_path):
         
     print(f"成功加载查询表，共包含 {len(lookup_table)} 条决策规则。")
     return lookup_table
+
+
+def find_nearest_action(state_9tuple, lookup_table):
+    """
+    在查找表中找到与给定状态最接近的条目的动作。
+    使用加权欧几里得距离，对各维度赋予不同权重。
+    """
+    keys = list(lookup_table.keys())
+    if not keys:
+        return "H:0 | V:0"
+    
+    # 各维度的权重（范围ft最重要，bearing和heading其次，速度较小，tau也重要）
+    weights = [1.0,        # Range(ft)
+               1.0,        # Rel_Altitude(ft)
+               0.5,        # Bearing(deg)
+               0.5,        # Rel_Heading(deg)
+               0.1,        # Intruder_Speed(fps)
+               0.1,        # Own_Speed(fps)
+               0.2,        # Own_Vert_Rate(fps)
+               0.2,        # Int_Vert_Rate(fps)
+               2.0]        # Tau(s) - 高权重
+    
+    best_key = None
+    best_dist = float('inf')
+    
+    for key in keys:
+        dist = 0.0
+        for i in range(9):
+            diff = state_9tuple[i] - key[i]
+            dist += weights[i] * diff * diff
+        if dist < best_dist:
+            best_dist = dist
+            best_key = key
+    
+    return lookup_table.get(best_key, "H:0 | V:0")
 
 
 def parse_action_str(action_str):
@@ -573,7 +608,7 @@ def draw_risk_gauge(ax, tau, range_ft, z_rel):
             fontsize=42, fontweight='bold', color=level_color)
     
     # 风险等级标签
-    ax.text(0, 0.15, f'[[ {level_text} ]]', ha='center', va='center',
+    ax.text(0, 0.15, f'[ {level_text} ]', ha='center', va='center',
             fontsize=16, fontweight='bold', color=level_color,
             bbox=dict(facecolor='white', edgecolor=level_color, pad=5))
     
@@ -595,8 +630,10 @@ def draw_risk_gauge(ax, tau, range_ft, z_rel):
     return risk
 
 
-def animate_example(timestamps, states, actions, interval=500):
-    """使用 matplotlib 动画播放示例文件的所有时间步状态图"""
+def animate_example(timestamps, states, actions, interval=500, output_gif=None):
+    """使用 matplotlib 动画播放示例文件的所有时间步状态图
+    如果 output_gif 指定了路径，则保存为 GIF 而非显示窗口
+    """
     max_range = max(s[0] for s in states) * 1.2
     if max_range <= 800:
         plot_range = 800
@@ -615,7 +652,7 @@ def animate_example(timestamps, states, actions, interval=500):
     ax3 = fig.add_subplot(2, 2, 3)
     ax4 = fig.add_subplot(2, 2, 4)
     
-    info_text_obj = plt.figtext(0.02, 0.07, "", fontsize=10,
+    info_text_obj = plt.figtext(0.02, 0.88, "", fontsize=10, va='top',
                                 bbox=dict(facecolor='white', alpha=0.9, edgecolor='gray'))
     suptitle_obj = fig.suptitle("", fontsize=14, fontweight='bold')
     
@@ -667,11 +704,18 @@ def animate_example(timestamps, states, actions, interval=500):
                         interval=interval, repeat=True, blit=False)
     
     plt.tight_layout()
-    plt.subplots_adjust(top=0.88, bottom=0.1)
+    plt.subplots_adjust(top=0.85, bottom=0.05)
     
-    print(f"开始播放动画 ({len(states)} 帧, {interval}ms 间隔)...")
-    print("关闭窗口退出")
-    plt.show()
+    if output_gif:
+        fps = 1000 / interval
+        print(f"正在保存 GIF 到 {output_gif} ({len(states)} 帧, {fps:.1f} fps)...")
+        ani.save(output_gif, writer=PillowWriter(fps=fps))
+        print("GIF 保存完成！")
+        plt.close(fig)
+    else:
+        print(f"开始播放动画 ({len(states)} 帧, {interval}ms 间隔)...")
+        print("关闭窗口退出")
+        plt.show()
     return ani
 
 
@@ -706,14 +750,22 @@ if __name__ == "__main__":
         print("错误：未能提取任何有效状态数据")
         sys.exit(1)
     
-    # 查表获取每个时间步的推荐动作
+    # 查表获取每个时间步的推荐动作（使用最近邻匹配）
     actions = []
     for state in states:
         discrete_key = discretize_state(*state[:9])
-        action = table.get(discrete_key, "H:0 | V:0")
+        action = find_nearest_action(discrete_key, table)
         actions.append(action)
+    
+    matched = sum(1 for s, a in zip(states, actions) if table.get(discretize_state(*s[:9]), None) is not None)
+    print(f"精确匹配: {matched}/{len(states)} 帧, 其余使用最近邻匹配")
+    
+    output_gif = None
+    for arg in sys.argv[1:]:
+        if arg.startswith("--output-gif="):
+            output_gif = arg.split("=")[1]
     
     print(f"共 {len(states)} 帧，间隔 {interval}ms")
     
-    # 播放动画
-    animate_example(timestamps, states, actions, interval=interval)
+    # 播放动画或保存为 GIF
+    animate_example(timestamps, states, actions, interval=interval, output_gif=output_gif)
