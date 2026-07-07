@@ -723,11 +723,12 @@ if __name__ == "__main__":
     # ============================================================
     # 【更换轨迹文件】只需修改下面 EXAMPLE_FILE 的路径即可
     # ============================================================
-    EXAMPLE_FILE = "D:/workforce/project/suma/suma/suma/example/original/test/Synthetic_Encounter_001.json"
+    EXAMPLE_FILE = "D:/workforce/project/suma/suma/suma/example/generated/AutoGen_Encounter_0002.json"
     # ============================================================
     
     # 加载查询表
-    csv_file = "d:/workforce/project/suma/suma/my_lightweight_table.csv"
+    csv_file = "d:/workforce/project/suma/suma/my_lightweight_table_dense.csv"
+
     table = load_lookup_table(csv_file)
     
     # 确定输入文件（命令行参数优先）
