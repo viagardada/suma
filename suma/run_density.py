@@ -25,7 +25,11 @@ try:
     
     ALT_BIN=100.0; BEARING_BIN=30.0; HEADING_BIN=30.0
     INT_SPEED_BIN=50.0; OWN_SPEED_BIN=50.0; V_RATE_BIN=10.0; TAU_BIN=5.0
-    WEIGHTS = np.array([1.0,1.0,0.5,0.5,0.1,0.1,0.2,0.2,2.0])
+    # 权重 = 重要度 / (bin步长)²，使各维度变一格时贡献均衡
+    # 重要度: Range=5, Alt=3, Bearing=2, Heading=2, Speed=1, VertRate=2, Tau=10
+    # Range(500ft): 5/250000, Bearing(30°): 2/900, Tau(5s): 10/25
+    WEIGHTS = np.array([0.000020, 0.000300, 0.002222, 0.002222,
+                        0.000400, 0.000400, 0.020000, 0.020000, 0.400000])
     MAX_R=3000.0; MAX_A=1000.0; MAX_CAND=40000
     
     def get_range_bin(r):
