@@ -9,7 +9,7 @@ try:
     _HAS_SCIPY = True
 except ModuleNotFoundError:
     _HAS_SCIPY = False
-    print("警告: 未安装 scipy，k-NN 功能不可用，使用 1-NN 暴力搜索")
+    print("警告: 未安装 scipy，k-NN 功能不可用，使用 1-NN 搜索")
     print("如需 k-NN 功能: D:\\workforce\\anaconda\\python.exe visualize.py --knn")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
