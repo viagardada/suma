@@ -70,17 +70,20 @@ HDG_BINS = list(range(-180, 181, 30))                  # -180 ~ +180, 13 格
 CORE_R_TICK_IDX = [0, 4, 5, 7, 8]                      # 100/500/1000/2000/3000
 FAR_R_TICK_IDX = [0, 4, 9, 19, 29, 39, 43]             # 4000/5000/10000/20000/...
 FULL_R_TICK_IDX = [0, 4, 5, 7, 8, 12, 22, 32, 42, 52]  # 100/500/1000/2000/3000/...
+# 02 图专用: 横轴 0~17000 ft
+H_RANGE_BINS = [0] + CORE_RANGE_BINS + list(range(4000, 17001, 1000))  # 0/100~3000/4000~17000
+H_R_TICK_IDX = [0, 1, 5, 6, 8, 9, 11, 16, 23]  # 0/100/500/1000/2000/3000/5000/10000/17000
 CORE_ALT_TICK_IDX = [0, 5, 10, 15, 20]                 # -1000/-500/0/500/1000
 FULL_ALT_TICK_IDX = [0, 4, 14, 24, 34, 44, 46]
 BRG_TICK_IDX = list(range(0, 13, 2))                   # 每 60°
 HDG_TICK_IDX = list(range(0, 13, 2))                   # 每 60°
 
-BRG_NAME = {-180: "尾随 -180°", -150: "左后 -150°", -120: "左后 -120°",
+BRG_NAME = {-180: "后方 -180°", -150: "左后 -150°", -120: "左后 -120°",
             -90: "左侧 -90°", -60: "左前 -60°", -30: "左前 -30°",
             0: "正前方 0°", 30: "右前 30°", 60: "右前 60°",
-            90: "右侧 90°", 120: "右后 120°", 150: "右后 150°", 180: "尾随 180°"}
+            90: "右侧 90°", 120: "右后 120°", 150: "右后 150°", 180: "后方 180°"}
 HDG_NAME = {-180: "对头 -180°", -90: "左交叉 -90°", 0: "同向 0°",
-            90: "右交叉 90°", 180: "尾随 180°"}
+            90: "右交叉 90°", 180: "同向 180°"}
 TAU_NAME = {-1.0: "远离中(τ<0)", 5.0: "τ=5s 紧迫", 10.0: "τ=10s", 15.0: "τ=15s"}
 
 # 列索引
@@ -138,15 +141,16 @@ def build_grid(arr, mask, x_col, y_col, x_bins, y_bins, code_col):
 
 
 def draw_heat(ax, grid, frac, x_bins, y_bins, x_tick_idx, y_tick_idx,
-              cmap, norm, title, ylabel, xlabel="Range (ft)"):
+              cmap, norm, title, ylabel, xlabel="Range (ft)",
+              show_disagreement=True):
     masked = np.ma.masked_where(grid < 0, grid)
     ax.set_facecolor("#F5F5F5")  # 无数据格浅灰
     ax.imshow(masked, cmap=cmap, norm=norm, origin='lower', aspect='auto',
               extent=[-0.5, len(x_bins) - 0.5, -0.5, len(y_bins) - 0.5],
               interpolation='nearest')
-    # 分歧点: 该格众数占比 < 60%
+    # 分歧点: 该格众数占比 < 60% (可通过 show_disagreement=False 关闭)
     yi, xi = np.where((grid >= 0) & (frac < 0.60))
-    if len(xi):
+    if show_disagreement and len(xi):
         ax.scatter(xi, yi, marker='o', s=7, c='white', edgecolors='black',
                    linewidths=0.4, zorder=5)
     ax.set_xticks(x_tick_idx)
@@ -191,7 +195,7 @@ def plot_distribution(arr):
         ax.text(v + total * 0.012, i, f"{v:,}  ({v / total * 100:.1f}%)",
                 va='center', fontsize=8.5)
     ax.set_xlabel("规则条数", fontsize=11)
-    ax.set_title(f"密集化查询表动作组合分布 — 共 {total:,} 条规则 / {len(items)} 种组合",
+    ax.set_title(f"密集化查询表动作组合分布 — 共 {total:,} 条规则",
                  fontsize=13, fontweight='bold')
     ax.grid(axis='x', linestyle='--', alpha=.4)
     ax.legend(handles=[Patch(facecolor='#FF9800', label='安全态 H:0|V:0 (居多数)'),
@@ -208,7 +212,7 @@ def plot_heat_layers(arr, fname, x_col, y_col, x_bins, y_bins, code_col,
                      layers, layer_col, layer_names, cmap, norm, names, colors,
                      fixed_txt, x_tick_idx, y_tick_idx, ylabel, fig_cols=3,
                      per_title=None, figsize=None, subplot_w=4.4, subplot_h=4.2,
-                     footnote=None):
+                     footnote=None, show_disagreement=True):
     n = len(layers)
     cols = min(fig_cols, n)
     rows = int(np.ceil(n / cols))
@@ -222,7 +226,8 @@ def plot_heat_layers(arr, fname, x_col, y_col, x_bins, y_bins, code_col,
         grid, frac = build_grid(arr, mask, x_col, y_col, x_bins, y_bins, code_col)
         title = per_title(lv) if per_title else f"{layer_names.get(lv, lv)}"
         draw_heat(ax, grid, frac, x_bins, y_bins, x_tick_idx, y_tick_idx,
-                  cmap, norm, title, ylabel)
+                  cmap, norm, title, ylabel,
+                  show_disagreement=show_disagreement)
         codes_present = set(grid[grid >= 0].tolist())
         add_legend(ax, codes_present, names, colors)
         total, n_occ = grid.size, int((grid >= 0).sum())
@@ -249,19 +254,20 @@ def plot_h_range_bearing(arr):
         return f"水平决策面  Rel_Alt={alt:+.0f} ft"
 
     plot_heat_layers(
-        arr, '02_h_range_bearing.png', C_R, C_B, FULL_RANGE_BINS, BRG_BINS, C_HC,
+        arr, '02_h_range_bearing.png', C_R, C_B, H_RANGE_BINS, BRG_BINS, C_HC,
         layers, C_A, {}, cmap, norm, H_NAMES, H_COLORS,
-        "水平决策面: Range × Bearing 全景 (颜色 = 水平动作)\n"
+        "水平决策面: Range × Bearing (Range 0~17000 ft, 颜色 = 水平动作)\n"
         "固定: 对头接近(Rel_Heading=180°) | τ=5s | 聚合: 双机速度/垂直率取众数",
-        FULL_R_TICK_IDX, BRG_TICK_IDX, "Bearing (°, 前方=0, 左负右正) 每格30°",
-        per_title=per_title, figsize=(16.5, 9.5))
+        H_R_TICK_IDX, BRG_TICK_IDX, "Bearing (°, 前方=0, 左负右正) 每格30°",
+        per_title=per_title, figsize=(16.5, 9.5),
+        footnote="灰色 = 无数据", show_disagreement=False)
 
 
 # ---------------- 03 垂直决策面 (核心区, 按方位) ----------------
 def plot_v_core_bearing(arr):
     cmap = ListedColormap(V_COLORS)
     norm = BoundaryNorm([-0.5 + i for i in range(8)], cmap.N)
-    layers = [-180.0, -90.0, 0.0, 90.0, 180.0]
+    layers = [-180.0, -90.0, 0.0, 90.0]
 
     def per_title(b):
         return f"垂直决策面  Bearing={BRG_NAME[b]}"
@@ -270,16 +276,18 @@ def plot_v_core_bearing(arr):
         arr, '03_v_core_bearing.png', C_R, C_A, CORE_RANGE_BINS, CORE_ALT_BINS, C_VC,
         layers, C_B, BRG_NAME, cmap, norm, V_NAMES, V_COLORS,
         "垂直决策面(核心区 Range≤3000ft, |Alt|≤1000ft): Range × Rel_Alt (颜色 = 垂直动作) — 入侵机方位对比\n"
-        "固定: 对头接近(Rel_Heading=180°) | τ=5s | 聚合: 双机速度/垂直率取众数",
+        "固定: 对头接近(Rel_Heading=180°) | τ=5s | 聚合: 双机速度/垂直率取众数\n",
         CORE_R_TICK_IDX, CORE_ALT_TICK_IDX, "Rel_Alt (ft) 每格100ft",
-        per_title=per_title, figsize=(16.5, 10.5), fig_cols=3)
+        per_title=per_title, figsize=(14, 9.5), fig_cols=2,
+        footnote="灰色 = 无数据", show_disagreement=False)
 
 
 # ---------------- 04 垂直决策面 (核心区, 按接近几何) ----------------
 def plot_v_core_heading(arr):
     cmap = ListedColormap(V_COLORS)
     norm = BoundaryNorm([-0.5 + i for i in range(8)], cmap.N)
-    layers = [-180.0, -90.0, 0.0, 90.0, 180.0]
+    # 去掉 Rel_Heading=180° (同向) 子图, 保留 -180°/-90°/0°/90° 四张
+    layers = [-180.0, -90.0, 0.0, 90.0]
 
     def per_title(h):
         return f"垂直决策面  Rel_Heading={HDG_NAME[h]}"
@@ -290,7 +298,8 @@ def plot_v_core_heading(arr):
         "垂直决策面(核心区 Range≤3000ft, |Alt|≤1000ft): Range × Rel_Alt (颜色 = 垂直动作) — 接近几何对比\n"
         "固定: 正前方(Bearing=0°) | τ=5s | 聚合: 双机速度/垂直率取众数",
         CORE_R_TICK_IDX, CORE_ALT_TICK_IDX, "Rel_Alt (ft) 每格100ft",
-        per_title=per_title, figsize=(16.5, 10.5), fig_cols=3)
+        per_title=per_title, fig_cols=2,
+        footnote="灰色 = 无数据", show_disagreement=False)
 
 
 # ---------------- 05 τ 敏感性 (核心区) ----------------
@@ -308,7 +317,8 @@ def plot_v_core_tau(arr):
         "τ 敏感性(核心区 Range≤3000ft, |Alt|≤1000ft): Range × Rel_Alt (颜色 = 垂直动作)\n"
         "固定: 正前方(Bearing=0°) | 对头(Rel_Heading=180°) | 聚合: 双机速度/垂直率取众数",
         CORE_R_TICK_IDX, CORE_ALT_TICK_IDX, "Rel_Alt (ft) 每格100ft",
-        per_title=per_title, figsize=(16.5, 10.5), fig_cols=2)
+        per_title=per_title, figsize=(16.5, 10.5), fig_cols=2,
+        footnote="灰色 = 无数据", show_disagreement=False)
 
 
 # ---------------- 06 远距区垂直决策面 (按方位) ----------------
@@ -328,7 +338,29 @@ def plot_v_far_bearing(arr):
         "固定: 对头接近(Rel_Heading=180°) | τ=5s | 聚合: 双机速度/垂直率取众数\n"
         "注: 远距规则仅存在于前/后向扇区(±120°~±180°), 侧向视野(±30°~±90°)在远距无规则=默认安全",
         FAR_R_TICK_IDX, FULL_ALT_TICK_IDX, "Rel_Alt (ft) 每格100ft",
-        per_title=per_title, figsize=(16.5, 10.5), fig_cols=3)
+        per_title=per_title, figsize=(16.5, 10.5), fig_cols=3,
+        footnote="灰色 = 无数据", show_disagreement=False)
+
+
+# ---------------- 07 水平决策面 τ 敏感性 (核心区) ----------------
+def plot_h_tau_bearing(arr):
+    cmap = ListedColormap(H_COLORS)
+    norm = BoundaryNorm([-0.5 + i for i in range(5)], cmap.N)
+    layers = [-1.0, 5.0, 10.0, 15.0]
+
+    def per_title(t):
+        return f"水平决策面  {TAU_NAME[t]}"
+
+    # 固定: 同高度(Rel_Alt=0) + 对头(Rel_Heading=180°)
+    sub = arr[(arr[:, C_A] == 0.0) & (arr[:, C_H] == 180.0)]
+    plot_heat_layers(
+        sub, '07_h_tau_bearing.png', C_R, C_B, H_RANGE_BINS, BRG_BINS, C_HC,
+        layers, C_T, TAU_NAME, cmap, norm, H_NAMES, H_COLORS,
+        "水平决策面 τ 敏感性: Range × Bearing (颜色 = 水平动作)\n"
+        "固定: 同高度(Rel_Alt=0) | 对头(Rel_Heading=180°) | 聚合: 双机速度/垂直率取众数",
+        H_R_TICK_IDX, BRG_TICK_IDX, "Bearing (°, 前方=0, 左负右正) 每格30°",
+        per_title=per_title, figsize=(16.5, 10.5), fig_cols=2,
+        footnote="灰色 = 无数据", show_disagreement=False)
 
 
 def main():
@@ -342,6 +374,7 @@ def main():
     plot_v_core_heading(arr)
     plot_v_core_tau(arr)
     plot_v_far_bearing(arr)
+    plot_h_tau_bearing(arr)
     print(f"\n全部图集已输出至: {OUT_DIR}")
 
 
