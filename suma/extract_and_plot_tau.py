@@ -38,6 +38,20 @@ FT_TO_NM = 1.0 / 6076.115
 DEG_TO_RAD = math.pi / 180.0
 RAD_TO_DEG = 180.0 / math.pi
 
+# ============ 查询表相关常量 (与 visualize.py 保持一致) ============
+RANGE_BIN = 500.0
+ALT_BIN = 100.0
+BEARING_BIN = 30.0
+HEADING_BIN = 30.0
+INT_SPEED_BIN = 50.0
+OWN_SPEED_BIN = 50.0
+V_RATE_BIN = 10.0
+TAU_BIN = 5.0
+WEIGHTS = [0.000020, 0.000300, 0.002222, 0.002222,
+           0.000400, 0.000400, 0.020000, 0.020000, 0.400000]
+LOOKUP_TABLE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 'my_lightweight_table_dense.csv')
+
 
 
 def enu_from_lat_lon(origin_lat_deg, origin_lon_deg, target_lat_deg, target_lon_deg):
@@ -110,6 +124,167 @@ def compute_cpa_distance(x_rel_ft, y_rel_ft, dx_rel_fps, dy_rel_fps):
     return math.sqrt(x_cpa**2 + y_cpa**2)
 
 
+class LookupDict(dict):
+    """支持附加 KDTree 属性的 dict 子类（普通 dict 不能设置属性）"""
+    pass
+
+
+def load_lookup_table(csv_path):
+    """
+    从 CSV 加载查询表。
+    返回一个带 KDTree 加速索引的 LookupDict 对象:
+    - 支持 dict 风格 `key in lookup` / `lookup[key]`
+    - 支持 `lookup._has_kd` 标记是否可用 KDTree
+    """
+    lookup_dict = LookupDict()
+    if not os.path.exists(csv_path):
+        print(f"警告: 查询表文件不存在: {csv_path}")
+        lookup_dict._has_kd = False
+        return lookup_dict
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            key = (
+                float(row['Range(ft)']),
+                float(row['Rel_Altitude(ft)']),
+                float(row['Bearing(deg)']),
+                float(row['Rel_Heading(deg)']),
+                float(row['Intruder_Speed(fps)']),
+                float(row['Own_Speed(fps)']),
+                float(row['Own_Vert_Rate(fps)']),
+                float(row['Int_Vert_Rate(fps)']),
+                float(row['Tau(s)'])
+            )
+            if key not in lookup_dict:
+                lookup_dict[key] = row['Recommended_Action']
+    print(f"成功加载查询表: {csv_path}，共 {len(lookup_dict)} 条规则")
+
+    # 构建 KDTree 加速最近邻查询
+    try:
+        from scipy.spatial import KDTree
+        _keys = np.array(list(lookup_dict.keys()), dtype=np.float64)
+        _sqrt_w = np.sqrt(np.array(WEIGHTS, dtype=np.float64))
+        lookup_dict._kd_tree = KDTree(_keys * _sqrt_w)
+        lookup_dict._kd_keys = list(lookup_dict.keys())
+        lookup_dict._kd_sqrt_w = _sqrt_w
+        lookup_dict._has_kd = True
+        print(f"  已构建 KDTree 加速索引")
+    except ImportError:
+        lookup_dict._has_kd = False
+        print(f"  scipy 不可用，使用线性扫描最近邻")
+
+    return lookup_dict
+
+
+def find_nearest_action(state_9tuple, lookup_dict):
+    """
+    在查找表中找到与给定状态最接近的条目的动作。
+    优先精确匹配；若不在表中则使用加权最近邻（KDTree 加速），
+    兜底返回 H:0 | V:0。
+    """
+    # 先尝试精确匹配
+    if state_9tuple in lookup_dict:
+        return lookup_dict[state_9tuple]
+
+    # KDTree 加速最近邻
+    if getattr(lookup_dict, '_has_kd', False):
+        q = np.array(state_9tuple, dtype=np.float64) * lookup_dict._kd_sqrt_w
+        dist, idx = lookup_dict._kd_tree.query(q)
+        return lookup_dict[lookup_dict._kd_keys[idx]]
+
+    # 线性扫描兜底（scipy 不可用时）
+    keys = list(lookup_dict.keys())
+    if not keys:
+        return "H:0 | V:0"
+
+    best_key = None
+    best_dist = float('inf')
+    for key in keys:
+        dist = 0.0
+        for i in range(9):
+            diff = state_9tuple[i] - key[i]
+            dist += WEIGHTS[i] * diff * diff
+        if dist < best_dist:
+            best_dist = dist
+            best_key = key
+
+    return lookup_dict.get(best_key, "H:0 | V:0")
+
+
+def discretize_state(r, z, b, psi, int_spd, own_spd, own_dz, int_dz, tau):
+    """
+    将连续物理状态转换为 9 维离散状态元组。
+    与 visualize.py 中的 discretize_state 逻辑一致。
+    """
+    if r <= 500.0:
+        r_bin = round(r / 100.0) * 100.0
+        r_bin = max(100.0, r_bin)
+    elif r <= 2000.0:
+        r_bin = round(r / 500.0) * 500.0
+    else:
+        r_bin = round(r / 1000.0) * 1000.0
+
+    a_bin = round(z / ALT_BIN) * ALT_BIN
+
+    b_bin = round(b / BEARING_BIN) * BEARING_BIN
+    if b_bin > 180.0:
+        b_bin -= 360.0
+
+    psi_bin = round(psi / HEADING_BIN) * HEADING_BIN
+    if psi_bin > 180.0:
+        psi_bin -= 360.0
+
+    int_spd_bin = round(int_spd / INT_SPEED_BIN) * INT_SPEED_BIN
+    own_spd_bin = round(own_spd / OWN_SPEED_BIN) * OWN_SPEED_BIN
+
+    own_dz_bin = round(own_dz / V_RATE_BIN) * V_RATE_BIN
+    int_dz_bin = round(int_dz / V_RATE_BIN) * V_RATE_BIN
+
+    # tau < 0 表示远离中，离散化为 -1；否则正常取 5 的倍数
+    if tau < 0:
+        tau_bin = -1.0
+    else:
+        tau_bin = 100.0 if tau >= 100.0 else round(tau / TAU_BIN) * TAU_BIN
+        tau_bin = max(TAU_BIN, tau_bin)
+
+    return (r_bin, a_bin, b_bin, psi_bin, int_spd_bin,
+            own_spd_bin, own_dz_bin, int_dz_bin, tau_bin)
+
+
+def compute_state_vector(own, intr, east_ft, north_ft, range_ft, tau_min):
+    """
+    根据 ownship / intruder 数据及几何量，构建 9 维状态向量:
+    (Range, Rel_Alt, Bearing, Rel_Heading, Intruder_Speed,
+     Own_Speed, Own_Vert_Rate, Int_Vert_Rate, Tau)
+    """
+    own_vel_e_fps = own.get('vel_ew_kts', 0) * KTS_TO_FPS
+    own_vel_n_fps = own.get('vel_ns_kts', 0) * KTS_TO_FPS
+    int_vel_e_fps = intr.get('vel_ew_kts', 0) * KTS_TO_FPS
+    int_vel_n_fps = intr.get('vel_ns_kts', 0) * KTS_TO_FPS
+
+    own_spd_fps = math.hypot(own_vel_e_fps, own_vel_n_fps)
+    int_spd_fps = math.hypot(int_vel_e_fps, int_vel_n_fps)
+
+    own_dz = own.get('alt_rate_hae_fps', 0)
+    # 尝试从 intruder 数据中提取垂直速率
+    int_dz = intr.get('alt_rate_hae_fps',
+               intr.get('alt_rate_pres_fps', 0))
+
+    # 相对方位角: atan2(east, north) => 北为 0，顺时针为正（度）
+    bearing_deg = math.atan2(east_ft, north_ft) * RAD_TO_DEG
+
+    # 本机航向角: atan2(vel_e, vel_n) => 北为 0，顺时针为正（度）
+    if own_spd_fps > 1.0:
+        heading_deg = math.atan2(own_vel_e_fps, own_vel_n_fps) * RAD_TO_DEG
+    else:
+        heading_deg = 0.0
+
+    rel_alt_ft = intr.get('alt_hae_ft', intr.get('alt_pres_ft', 0)) - own.get('alt_hae_ft', 0)
+
+    return (range_ft, rel_alt_ft, bearing_deg, heading_deg,
+            int_spd_fps, own_spd_fps, own_dz, int_dz, tau_min)
+
+
 def parse_encounter(filepath):
     """
     解析 encounter JSON 文件，提取每个时间步的 ownship 和 intruder 状态。
@@ -160,9 +335,10 @@ def parse_encounter(filepath):
     return time_groups
 
 
-def compute_tau_for_time_group(time_groups):
+def compute_tau_for_time_group(time_groups, lookup_table=None):
     """
-    对每个时间组计算 tau 值
+    对每个时间组计算 tau 值，并通过查询表获取避障动作。
+    lookup_table: {9维离散元组: 动作字符串} 字典，若为 None 则跳过查表。
     """
     results = []
     sorted_times = sorted(time_groups.keys())
@@ -200,7 +376,7 @@ def compute_tau_for_time_group(time_groups):
             cpa_dist = compute_cpa_distance(east, north, dx_rel, dy_rel)
             range_ft = math.sqrt(east**2 + north**2)
 
-            results.append({
+            result = {
                 'time': t,
                 'intruder_id': intruder_id,
                 'tau_horiz': tau_h,
@@ -209,7 +385,16 @@ def compute_tau_for_time_group(time_groups):
                 'cpa_dist_ft': cpa_dist,
                 'range_ft': range_ft,
                 'rel_alt_ft': z_rel,
-            })
+                'recommended_action': 'H:0 | V:0',
+            }
+
+            # 若提供了查询表，则计算 9 维状态并查表获取避障动作
+            if lookup_table:
+                state_vec = compute_state_vector(own, intr, east, north, range_ft, tau_min)
+                discrete_key = discretize_state(*state_vec)
+                result['recommended_action'] = find_nearest_action(discrete_key, lookup_table)
+
+            results.append(result)
 
     return results
 
@@ -217,7 +402,7 @@ def compute_tau_for_time_group(time_groups):
 def save_csv(results, output_path):
     """保存 tau 结果为 CSV 文件"""
     fieldnames = ['time', 'intruder_id', 'tau_horiz', 'tau_vert', 'tau_min',
-                  'cpa_dist_ft', 'range_ft', 'rel_alt_ft']
+                  'cpa_dist_ft', 'range_ft', 'rel_alt_ft', 'recommended_action']
     with open(output_path, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -290,7 +475,7 @@ def plot_tau(results, title, output_path, max_tau=120):
     print(f"绘图已保存: {output_path}")
 
 
-def process_single_encounter(filepath, output_dir='tau_output'):
+def process_single_encounter(filepath, output_dir='tau_output', lookup_table=None):
     """处理单个 encounter 文件"""
     os.makedirs(output_dir, exist_ok=True)
 
@@ -298,7 +483,7 @@ def process_single_encounter(filepath, output_dir='tau_output'):
     print(f"\n处理: {basename}")
     time_groups = parse_encounter(filepath)
     print(f"  时间步数: {len(time_groups)}")
-    results = compute_tau_for_time_group(time_groups)
+    results = compute_tau_for_time_group(time_groups, lookup_table)
     print(f"  数据点: {len(results)}")
 
     if not results:
@@ -312,7 +497,7 @@ def process_single_encounter(filepath, output_dir='tau_output'):
     plot_tau(results, f"Tau vs Time - {basename}", plot_path)
 
 
-def process_all_encounters(encounter_dir, output_dir='tau_output'):
+def process_all_encounters(encounter_dir, output_dir='tau_output', lookup_table=None):
     """处理目录下所有 original encounter 文件"""
     pattern = os.path.join(encounter_dir, 'Encounter*Input.json')
     import glob
@@ -324,7 +509,7 @@ def process_all_encounters(encounter_dir, output_dir='tau_output'):
 
     print(f"找到 {len(files)} 个 encounter 文件")
     for filepath in files:
-        process_single_encounter(filepath, output_dir)
+        process_single_encounter(filepath, output_dir, lookup_table)
 
 
 def main():
@@ -360,6 +545,9 @@ def main():
         original_dir = os.path.normpath(candidates[0])
         print(f"警告: 未能自动定位 original 目录，使用默认路径: {original_dir}")
 
+    # 加载查询表（查找表路径与脚本同目录）
+    lookup_table = load_lookup_table(LOOKUP_TABLE_PATH)
+
     if args.encounter:
         filepath = os.path.join(original_dir, args.encounter)
         if not os.path.exists(filepath):
@@ -367,9 +555,9 @@ def main():
         if not os.path.exists(filepath):
             print(f"错误: 找不到文件 {filepath}")
             sys.exit(1)
-        process_single_encounter(filepath, args.output)
+        process_single_encounter(filepath, args.output, lookup_table)
     else:
-        process_all_encounters(original_dir, args.output)
+        process_all_encounters(original_dir, args.output, lookup_table)
 
     print("\n完成!")
 
