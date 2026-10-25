@@ -18,17 +18,21 @@ avoidance_polar_map.py —— 避障决策极坐标查询器 (ACAS sXu 轻量查
 本机比入侵者慢时写作 1:x, 快时写作 x:1, 覆盖 100% 的规则; 同一比例下的多组绝对
 速度 (如 1:1 的 150/150、200/200 … 400/400) 按众数汇总为一个动作。
 
+固定高度：-200 / -100 / 0 / 100 / 200 ft，共享四个滑块。
+固定高度若不在输入表中则显示无数据，不做插值。
+
 用法
 ----
-    python avoidance_polar_map.py                     # 交互窗口(全表, 默认只显示避障态)
-    python avoidance_polar_map.py --include-safe      # 背景也纳入安全态(H:0|V:0)
+    python avoidance_polar_map.py                     # 交互窗口(全表，默认包含无建议记录)
+    python avoidance_polar_map.py --avoid-only        # 隐藏 H:0|V:0 记录
+    python avoidance_polar_map.py --max-range 1000    # 查看 1000 ft 内圈
     python avoidance_polar_map.py --hv v              # 背景按垂直动作着色
     python avoidance_polar_map.py -o out.png          # 无界面渲染当前视图为 PNG
     python avoidance_polar_map.py --bearing 30 --range 1000 --rel-heading -180 --ratio 1:2
                                       # 速度比写作 本机:入侵者, 一边恒为 1 (此处本机慢一半)
 
 交互按键
-    A  切换 "是否包含安全态"
+    A  切换 "是否包含无建议记录"
     H  背景按水平动作着色      V  背景按垂直动作着色
     ← / →   选中的方位扇区 -/+ 1 档
     ↑ / ↓   选中的距离环   +/− 1 档
@@ -37,7 +41,8 @@ avoidance_polar_map.py —— 避障决策极坐标查询器 (ACAS sXu 轻量查
 图面约定 (与 polar_state_view.py 一致)
     * 机头朝上: 图面 0° = 本机机头方向, 正角度(顺时针) = 右侧, 负角度 = 左侧
     * 背景铺满颜色: 每个"方位×距离"区块是一个**扇环**, 颜色 = 当前切片下的动作众数
-    * 灰色 = 无数据; 深灰 H:0/V:0 = 安全(无动作)
+    * 浅灰 #E8E8E8 = 无数据 (该区块在当前切片下没有任何避障规则, 面板显示 H:--/V:--)
+    * 中灰 #9E9E9E = 当前方向无建议 (H:0 或 V:0)，另一方向可能仍有建议
     * 选中区块用黑色加粗扇环高亮
 """
 
@@ -67,14 +72,14 @@ plt.rcParams["axes.unicode_minus"] = False
 
 # ---------------- 动作命名与配色 (与 visualize_dense.py / polar_state_view.py 一致) ----------------
 H_NAMES = {
-    0: "NO ADVISORY(安全)",
+    0: "NO ADVISORY(无水平建议)",
     1: "CLEAR(解除)",
     2: "TURN RIGHT(右转)",
     3: "TURN LEFT(左转)",
     4: "STRAIGHT(直飞)",
 }
 V_NAMES = {
-    0: "NO ADVISORY(安全)",
+    0: "NO ADVISORY(无垂直建议)",
     1: "CLEAR(解除)",
     2: "DO NOT CLIMB(禁止爬升)",
     3: "DO NOT DESCEND(禁止下降)",
@@ -97,7 +102,7 @@ V_COLORS = [
 
 OWN_COLOR = "#1565C0"
 INT_COLOR = "#D32F2F"
-NO_DATA_COLOR = "#F5F5F5"
+NO_DATA_COLOR = "#E8E8E8"  # 无数据格: 比中灰 #9E9E9E(0/安全) 淡, 又明显区别于白底
 
 STATE_FIELDS = (
     "Range(ft)",
@@ -122,6 +127,7 @@ RATIO_FALLBACK = (1.0, "1:1")
 
 # 距离显示基准 (核心区), 选中更远距离时自动扩展
 R_DISPLAY_BASE = 3000.0
+FIXED_ALTITUDES = (-200.0, -100.0, 0.0, 100.0, 200.0)
 
 # 背景扇环平滑度: 每个方位 bin 的角边细分成多少段折线。
 # 极坐标下 pcolormesh 只变换顶点, 直连顶点会画成直边梯形; 细分后内外缘贴合圆弧。
@@ -242,16 +248,6 @@ def ratio_labels(vals):
     return [ratio_pair(v, 6) for v in vals]
 
 
-def ratio_note(r):
-    """速度比数值 -> 语义说明"""
-    r = float(r)
-    if abs(r - 1.0) < 1e-9:
-        return "本机与入侵者同速"
-    if r < 1.0:
-        return "入侵者速度 = 本机 × %s" % fmt_num(1.0 / r)
-    return "本机速度 = 入侵者 × %s" % fmt_num(r)
-
-
 def cell_edges(centers):
     """由 bin 中心生成 pcolormesh 边界 (相邻中点), 使格宽与离散步长成正比"""
     centers = np.asarray(centers, dtype=float)
@@ -338,7 +334,7 @@ def load_data(path):
     )
     safe = (arr[:, C_HC] == 0) & (arr[:, C_VC] == 0)
     print(
-        "  安全态 H:0|V:0: %d 条 | 避障态: %d 条"
+        "  无建议 H:0|V:0: %d 条 | 非零动作: %d 条"
         % (int(safe.sum()), int((~safe).sum()))
     )
     print("  不同速度比: %d 档" % len(meta["ratio_list"]))
@@ -369,6 +365,7 @@ class AvoidancePolarMap(object):
         self.meta = meta
         self.include_safe = bool(args.include_safe)
         self.bg = args.hv  # 'h' -> 背景按水平动作着色; 'v' -> 按垂直动作
+        self.display_max = getattr(args, "max_range", None)
 
         self.bearings = meta["bearings"]
         self.ranges = meta["ranges"]
@@ -376,6 +373,9 @@ class AvoidancePolarMap(object):
         self.nR = len(self.ranges)
         self.bear_edges = cell_edges(self.bearings)
         self.range_edges = cell_edges(self.ranges)
+        # The table clamps every range below 150 ft to its minimum 100-ft bin.
+        if np.isclose(self.ranges[0], 100.0):
+            self.range_edges[0] = 0.0
         self.avoid_mask = ~((arr[:, C_HC] == 0) & (arr[:, C_VC] == 0))
 
         N = len(arr)
@@ -425,24 +425,6 @@ class AvoidancePolarMap(object):
                 masks=numeric_masks(C_A, meta["alts"], True),
                 agg=True,
             ),
-            "tau": dict(
-                vals=[None] + list(meta["taus"]),
-                labels=["全部"] + ["%.0f" % t for t in meta["taus"]],
-                masks=numeric_masks(C_T, meta["taus"], True),
-                agg=True,
-            ),
-            "ovz": dict(
-                vals=[None] + list(meta["own_vz"]),
-                labels=["全部"] + ["%+.0f" % v for v in meta["own_vz"]],
-                masks=numeric_masks(C_OV, meta["own_vz"], True),
-                agg=True,
-            ),
-            "ivz": dict(
-                vals=[None] + list(meta["int_vz"]),
-                labels=["全部"] + ["%+.0f" % v for v in meta["int_vz"]],
-                masks=numeric_masks(C_IV, meta["int_vz"], True),
-                agg=True,
-            ),
         }
 
         # 初始选中档位 (聚合维默认 index 0 = "全部")
@@ -458,10 +440,14 @@ class AvoidancePolarMap(object):
             "heading", -180.0 if args.rel_heading is None else args.rel_heading
         )
         self._set_sel_ratio(args.ratio if args.ratio is not None else "1:1")
-        if args.alt is not None:
-            self._set_sel_near("alt", args.alt)
-        if args.tau is not None:
-            self._set_sel_near("tau", args.tau)
+        # Exact fixed heights; absent levels remain empty rather than snapping.
+        self.dims["alt"] = dict(
+            vals=list(FIXED_ALTITUDES),
+            labels=[fmt_ft(a) for a in FIXED_ALTITUDES],
+            masks=numeric_masks(C_A, FIXED_ALTITUDES, False),
+            agg=False,
+        )
+        self.sel["alt"] = 0
 
         self.ratios_arr = meta["ratios"]
         self.gridH = None
@@ -503,7 +489,8 @@ class AvoidancePolarMap(object):
         return self.dims[key]["labels"][self.sel[key]]
 
     # ------------------------------------------------------------------ 数据切片与聚合
-    FILTER_KEYS = ("heading", "ratio", "alt", "tau", "ovz", "ivz")
+    # 参与筛选的状态维 (Tau / 本机Vz / 入侵Vz 恒按"全部"聚合, 不可选)
+    FILTER_KEYS = ("heading", "ratio", "alt")
 
     def _filter_mask(self):
         """当前切片对应的行掩码 (方位/距离是图面坐标轴, 不作为筛选条件)"""
@@ -535,11 +522,21 @@ class AvoidancePolarMap(object):
             np.add.at(histH, (ri, bi, hc), 1)
             np.add.at(histV, (ri, bi, vc), 1)
             totH = histH.sum(axis=2)
-            totV = histV.sum(axis=2)
-            gridH = np.where(totH > 0, histH.argmax(axis=2), -1)
-            fracH = histH.max(axis=2) / np.maximum(totH, 1)
-            gridV = np.where(totV > 0, histV.argmax(axis=2), -1)
-            fracV = histV.max(axis=2) / np.maximum(totV, 1)
+            pair_hist = np.zeros((nR, nB, len(H_COLORS) * len(V_COLORS)), dtype=int)
+            np.add.at(pair_hist, (ri, bi, hc * len(V_COLORS) + vc), 1)
+            pair_mode = pair_hist.argmax(axis=2)
+            selected_h, selected_v = (
+                pair_mode // len(V_COLORS),
+                pair_mode % len(V_COLORS),
+            )
+            gridH = np.where(totH > 0, selected_h, -1)
+            gridV = np.where(totH > 0, selected_v, -1)
+            fracH = np.take_along_axis(histH, selected_h[..., None], axis=2)[
+                ..., 0
+            ] / np.maximum(totH, 1)
+            fracV = np.take_along_axis(histV, selected_v[..., None], axis=2)[
+                ..., 0
+            ] / np.maximum(totH, 1)
             cnt = totH
         self.gridH, self.gridV = gridH, gridV
         self.fracH, self.fracV = fracH, fracV
@@ -559,16 +556,6 @@ class AvoidancePolarMap(object):
             float(self.fracV[ri, bi]),
         )
 
-    def speed_combos(self):
-        """当前速度比下实际出现的 (本机, 入侵者) 绝对速度组合"""
-        m = self.dims["ratio"]["masks"][self.sel["ratio"]]
-        own = np.unique(self.arr[m, C_OS])
-        intr = np.unique(self.arr[m, C_IS])
-        pairs = sorted(
-            {(int(self.arr[i, C_OS]), int(self.arr[i, C_IS])) for i in np.nonzero(m)[0]}
-        )
-        return own, intr, pairs
-
     # ------------------------------------------------------------------ 图面与控件
     SLIDER_NAMES = {
         "bearing": "方位",
@@ -576,52 +563,30 @@ class AvoidancePolarMap(object):
         "heading": "入侵方向",
         "ratio": "速度比",
         "alt": "相对高度",
-        "tau": "Tau(s)",
-        "ovz": "本机Vz",
-        "ivz": "入侵Vz",
     }
 
     def build(self):
-        self.fig = plt.figure(figsize=(17.0, 10.0), facecolor="white")
-        self.axp = self.fig.add_axes([0.025, 0.272, 0.435, 0.628], projection="polar")
-        self.axp.set_theta_zero_location("N")
-        self.axp.set_theta_direction(-1)
-        pos = self.axp.get_position()
-        self.axo = self.fig.add_axes(
-            [pos.x0, pos.y0, pos.width, pos.height], frameon=False, zorder=6
-        )
-        self.axo.set_xlim(0, 1)
-        self.axo.set_ylim(0, 1)
-        self.axo.set_xticks([])
-        self.axo.set_yticks([])
-        self.axo.patch.set_visible(False)
-
-        self.axpanel = self.fig.add_axes([0.487, 0.272, 0.50, 0.628])
-        self.axpanel.set_xlim(0, 1)
-        self.axpanel.set_ylim(0, 1)
-        self.axpanel.set_xticks([])
-        self.axpanel.set_yticks([])
-        for sp in self.axpanel.spines.values():
-            sp.set_edgecolor("#BDBDBD")
-
+        self.fig = plt.figure(figsize=(24, 17), facecolor="white")
+        self.views = []
+        for i, altitude in enumerate(FIXED_ALTITUDES):
+            row, col = divmod(i, 3)
+            x, y = 0.025 + col * 0.33, 0.60 - row * 0.40
+            axp = self.fig.add_axes([x, y, 0.285, 0.265], projection="polar")
+            pos = axp.get_position()
+            axo = self.fig.add_axes(pos.bounds, frameon=False, zorder=6)
+            text = self.fig.add_axes([x, y - 0.065, 0.30, 0.055], frameon=False)
+            self.views.append((axp, axo, text))
+        self.legend_ax = self.fig.add_axes([0.70, 0.20, 0.28, 0.30], frameon=False)
         self.sliders = {}
-        slots = (
-            ("bearing", 0, 0),
-            ("range", 1, 0),
-            ("heading", 2, 0),
-            ("ratio", 3, 0),
-            ("alt", 0, 1),
-            ("tau", 1, 1),
-            ("ovz", 2, 1),
-            ("ivz", 3, 1),
-        )
-        row_y = (0.228, 0.168, 0.108, 0.048)
-        col_x = (0.085, 0.575)
-        for key, row, col in slots:
+        for key, x, y in (
+            ("bearing", 0.08, 0.105),
+            ("range", 0.57, 0.105),
+            ("heading", 0.08, 0.060),
+            ("ratio", 0.57, 0.060),
+        ):
             d = self.dims[key]
-            axs = self.fig.add_axes([col_x[col], row_y[row], 0.345, 0.022])
             sl = Slider(
-                axs,
+                self.fig.add_axes([x, y, 0.32, 0.018]),
                 self.SLIDER_NAMES[key],
                 0,
                 len(d["vals"]) - 1,
@@ -632,7 +597,6 @@ class AvoidancePolarMap(object):
             sl.on_changed(self._make_cb(key))
             self.sliders[key] = sl
         self.fig.canvas.mpl_connect("key_press_event", self.on_key)
-        # 窗口尺寸变化后重算矢量箭头 (箭头长度按像素定义, 需随画布重新标定)
         self.fig.canvas.mpl_connect("resize_event", self._on_resize)
 
     # ------------------------------------------------------------------ 屏幕坐标工具
@@ -682,6 +646,8 @@ class AvoidancePolarMap(object):
 
     # ------------------------------------------------------------------ 绘制: 极坐标图
     def _rmax(self):
+        if self.display_max is not None:
+            return self.display_max
         return max(R_DISPLAY_BASE, float(self._val("range")) * 1.15)
 
     @staticmethod
@@ -698,12 +664,18 @@ class AvoidancePolarMap(object):
         axp.set_theta_direction(-1)
         axp.set_facecolor(NO_DATA_COLOR)
         cmap, norm, _ = self._cmap_norm()
+        # 显式指定 masked 格(无数据)填充色, 不依赖 axes 底色这条隐式路径
+        cmap.set_bad(NO_DATA_COLOR)
         grid = self.gridH if self.bg == "h" else self.gridV
 
         rmax = self._rmax()
-        k = int((self.ranges <= rmax).sum())
+        k = max(1, int((self.ranges <= rmax).sum()))
         r_edges = self.range_edges[: k + 1]
-        rmax = float(r_edges[-1])
+        rmax = (
+            float(r_edges[-1])
+            if self.display_max is None
+            else min(rmax, float(r_edges[-1]))
+        )
         sub = grid[:k, :]
         # 背景按"扇环"铺色 (角边加密, 避免直边梯形)
         TH, RR, cells = arc_mesh(self.bear_edges, r_edges, sub)
@@ -839,16 +811,6 @@ class AvoidancePolarMap(object):
             zorder=8,
             bbox=self._lbl_box(),
         )
-        axo.text(
-            0.02,
-            0.02,
-            "机头朝上 · 圆心 = 本机 · 菱形 = 入侵者",
-            transform=axo.transAxes,
-            ha="left",
-            va="bottom",
-            fontsize=10,
-            color="#546E7A",
-        )
 
     # ------------------------------------------------------------------ 绘制: 右侧动作输出面板
     def _cmap_norm(self):
@@ -926,19 +888,12 @@ class AvoidancePolarMap(object):
         lines = (
             "入侵者位置:  %s    距离 %s ft"
             % (self._label("bearing"), fmt_ft(float(self._val("range")))),
-            "入侵者速度方向:  %s      速度比 (本机:入侵者):  %s  [%s]"
+            "入侵者速度方向:  %s      速度比 (本机:入侵者):  %s"
             % (
                 self._label("heading"),
                 self._label("ratio"),
-                ratio_note(self._val("ratio")),
             ),
-            "相对高度: %s    Tau: %s    本机Vz: %s    入侵Vz: %s"
-            % (
-                self._label("alt"),
-                self._label("tau"),
-                self._label("ovz"),
-                self._label("ivz"),
-            ),
+            "相对高度: %s" % (self._label("alt"),),
         )
         y = 0.912
         for ln in lines:
@@ -951,7 +906,7 @@ class AvoidancePolarMap(object):
             ax.text(
                 0.5,
                 0.50,
-                "当前条件下该位置没有避障规则 → 视为安全 (无建议)",
+                "无匹配规则或记录已被过滤，无法判断安全性",
                 ha="center",
                 va="center",
                 fontsize=13,
@@ -970,37 +925,12 @@ class AvoidancePolarMap(object):
                 fontweight="bold",
                 color="#263238",
             )
-            ax.text(
-                0.5,
-                0.445,
-                "命中规则 %d 条      一致度  H %.0f%% / V %.0f%%"
-                % (n, fh * 100.0, fv * 100.0),
-                ha="center",
-                va="center",
-                fontsize=12,
-                color="#37474F",
-            )
-
-        _, _, pairs = self.speed_combos()
-        ptxt = ", ".join("%d/%d" % p for p in pairs[:12])
-        if len(pairs) > 12:
-            ptxt += ", ..."
-        ax.text(
-            0.03,
-            0.335,
-            "速度比 %s 覆盖的绝对速度组合 (本机/入侵者 fps):  %s"
-            % (self._label("ratio"), ptxt),
-            ha="left",
-            va="center",
-            fontsize=10,
-            color="#546E7A",
-        )
 
         names = H_NAMES if self.bg == "h" else V_NAMES
         colors = H_COLORS if self.bg == "h" else V_COLORS
         ax.text(
             0.03,
-            0.278,
+            0.338,
             "背景配色 = %s" % ("水平动作 H" if self.bg == "h" else "垂直动作 V"),
             ha="left",
             va="center",
@@ -1014,7 +944,7 @@ class AvoidancePolarMap(object):
             col = i // per
             row = i % per
             x = 0.05 + col * 0.47
-            yy = 0.228 - row * 0.043
+            yy = 0.288 - row * 0.043
             ax.add_patch(
                 Rectangle(
                     (x, yy - 0.014),
@@ -1035,10 +965,32 @@ class AvoidancePolarMap(object):
                 color="#37474F",
             )
 
+        # 无数据色块: 不属于动作码, 单独一行放在动作码图例正下方
+        yy = 0.288 - per * 0.043 - 0.012
+        ax.add_patch(
+            Rectangle(
+                (0.05, yy - 0.014),
+                0.035,
+                0.028,
+                facecolor=NO_DATA_COLOR,
+                edgecolor="#BDBDBD",
+                lw=0.6,
+                zorder=3,
+            )
+        )
+        ax.text(
+            0.10,
+            yy,
+            "无数据 (该区块当前切片下无避障规则)",
+            fontsize=10,
+            va="center",
+            color="#546E7A",
+        )
+
         ax.text(
             0.5,
             0.015,
-            "速度比 = 本机:入侵者, 慢者记为 1 (如 1:1.33);  该比例下所有绝对速度组合按众数汇总;  安全态: %s"
+            "速度比 = 本机:入侵者, 慢者记为 1 (如 1:1.33);  该比例下所有绝对速度组合按众数汇总;  无建议记录: %s"
             % ("开" if self.include_safe else "关"),
             ha="center",
             va="bottom",
@@ -1048,10 +1000,47 @@ class AvoidancePolarMap(object):
 
     # ------------------------------------------------------------------ 刷新与交互
     def update(self):
-        self.aggregate()
-        self.draw_polar()
-        self.draw_overlay()
-        self.draw_panel()
+        self.summaries = []
+        for i, (axp, axo, text) in enumerate(self.views):
+            self.sel["alt"] = i
+            self.axp, self.axo = axp, axo
+            self.aggregate()
+            self.draw_polar()
+            self.draw_overlay()
+            altitude = FIXED_ALTITUDES[i]
+            exact = np.any(np.isclose(self.arr[:, C_A], altitude))
+            axp.set_title(
+                "相对高度 %+.0f ft%s"
+                % (altitude, "" if exact else " · 无精确高度数据"),
+                fontsize=13,
+                pad=30,
+            )
+            text.clear()
+            text.axis("off")
+            h, v, n, fh, fv = self.current_pair()
+            if n:
+                result = "H:%d %s / V:%d %s" % (h, H_NAMES[h], v, V_NAMES[v])
+            else:
+                result = "无匹配规则或记录已被过滤，无法判断安全性"
+            text.text(0.5, 0.5, result, ha="center", va="center", fontsize=10)
+            self.summaries.append(self.summary())
+        ax = self.legend_ax
+        ax.clear()
+        ax.axis("off")
+        names = H_NAMES if self.bg == "h" else V_NAMES
+        colors = H_COLORS if self.bg == "h" else V_COLORS
+        ax.text(
+            0,
+            1,
+            "背景：%s动作众数" % ("水平 H" if self.bg == "h" else "垂直 V"),
+            fontsize=14,
+            weight="bold",
+        )
+        for j, color in enumerate(colors + [NO_DATA_COLOR]):
+            y = 0.88 - j * 0.078
+            ax.add_patch(Rectangle((0, y - 0.02), 0.06, 0.04, color=color))
+            label = "%d %s" % (j, names[j]) if j < len(colors) else "已过滤"
+            ax.text(0.09, y, label, va="center", fontsize=11)
         for key, sl in self.sliders.items():
             sl.valtext.set_text(self._label(key))
         self.fig.canvas.draw_idle()
@@ -1078,7 +1067,7 @@ class AvoidancePolarMap(object):
     def _on_resize(self, event):
         """画布尺寸变化: 箭头按像素长度定义, 需要重算 overlay"""
         if self.gridH is not None:
-            self.draw_overlay()
+            self.update()
 
     def on_key(self, event):
         k = event.key
@@ -1114,35 +1103,25 @@ class AvoidancePolarMap(object):
         return path
 
     def summary(self):
-        h, v, n, fh, fv = self.current_pair()
+        h, v, n, _, _ = self.current_pair()
         if n == 0:
-            act = "H:-- | V:--  (无避障规则 -> 安全)"
+            act = "H:-- | V:--  (无匹配规则或已过滤，无法判断安全性)"
         else:
             act = "H:%d %s | V:%d %s" % (h, H_NAMES[h], v, V_NAMES[v])
-        return (
-            "方位 %s | 距离 %s ft | 速度方向 %s | 速度比 %s | 高度 %s | Tau %s | "
-            "本机Vz %s | 入侵Vz %s -> %s (命中 %d 条, 一致度 H %.0f%% / V %.0f%%)"
-            % (
-                self._label("bearing"),
-                fmt_ft(float(self._val("range"))),
-                self._label("heading"),
-                self._label("ratio"),
-                self._label("alt"),
-                self._label("tau"),
-                self._label("ovz"),
-                self._label("ivz"),
-                act,
-                n,
-                fh * 100,
-                fv * 100,
-            )
+        return "方位 %s | 距离 %s ft | 速度方向 %s | 速度比 %s | 高度 %s -> %s" % (
+            self._label("bearing"),
+            fmt_ft(float(self._val("range"))),
+            self._label("heading"),
+            self._label("ratio"),
+            self._label("alt"),
+            act,
         )
 
     def run(self):
         self.build()
         self.update()
         self.fig.suptitle(
-            "避障决策极坐标查询器 —— 手动选定 (位置 / 速度方向 / 速度比) → 本机动作",
+            "避障决策极坐标查询器 —— 五个固定相对高度，共享位置 / 航向 / 速度比",
             fontsize=15,
             fontweight="bold",
             y=0.985,
@@ -1150,7 +1129,7 @@ class AvoidancePolarMap(object):
         self.fig.text(
             0.5,
             0.010,
-            "按键:  A 安全态开关 | H / V 切换背景动作 | ← → 调方位 | ↑ ↓ 调距离 | S 存图 | Q 退出",
+            "按键:  A 无建议记录开关 | H / V 切换背景动作 | ← → 调方位 | ↑ ↓ 调距离 | S 存图 | Q 退出",
             ha="center",
             fontsize=10.5,
             color="#546E7A",
@@ -1164,26 +1143,46 @@ def build_argparser():
         description="避障决策极坐标查询器: 手动选定入侵者位置/速度方向/速度比 -> 输出本机动作"
     )
     p.add_argument("--table", default=DEFAULT_TABLE, help="状态表 CSV 路径")
-    p.add_argument("--include-safe", action="store_true", help="背景纳入安全态 H:0|V:0")
+    p.add_argument(
+        "--include-safe",
+        action="store_true",
+        default=True,
+        help="背景纳入无建议记录 H:0|V:0（默认开启）",
+    )
+    p.add_argument(
+        "--avoid-only",
+        action="store_false",
+        dest="include_safe",
+        help="仅显示有动作的记录，隐藏无建议记录",
+    )
     p.add_argument(
         "--hv", choices=("h", "v"), default="h", help="背景着色依据的动作类型"
     )
     p.add_argument("--bearing", type=float, default=None, help="初始方位角 (deg)")
     p.add_argument("--range", type=float, default=None, help="初始距离 (ft)")
+    p.add_argument(
+        "--max-range",
+        type=float,
+        default=None,
+        help="固定显示半径 (ft)，例如 1000；不随选中距离扩展",
+    )
     p.add_argument("--rel-heading", type=float, default=None, help="初始相对航向 (deg)")
     p.add_argument(
         "--ratio",
         default=None,
         help="初始速度比: 本机:入侵者, 一边恒为 1 (如 1:1.33 / 2:1) 或数值 (如 0.75)",
     )
-    p.add_argument("--alt", type=float, default=None, help="初始相对高度 (ft)")
-    p.add_argument("--tau", type=float, default=None, help="初始 Tau (s)")
     p.add_argument("-o", "--output", default=None, help="输出 PNG 路径 (无界面渲染)")
     return p
 
 
 def main(argv=None):
-    args = build_argparser().parse_args(argv)
+    parser = build_argparser()
+    args = parser.parse_args(argv)
+    if args.max_range is not None and (
+        not math.isfinite(args.max_range) or args.max_range <= 0
+    ):
+        parser.error("--max-range 必须为正的有限数")
     if not os.path.isfile(args.table):
         print("未找到表格文件: %s" % args.table)
         return 1
@@ -1191,7 +1190,8 @@ def main(argv=None):
     arr, meta = load_data(args.table)
     viewer = AvoidancePolarMap(arr, meta, args)
     viewer.run()
-    print("当前选择 -> %s" % viewer.summary())
+    for summary in viewer.summaries:
+        print("当前选择 -> %s" % summary)
 
     if args.output:
         out = os.path.abspath(args.output)

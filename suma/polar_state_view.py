@@ -25,6 +25,9 @@ polar_state_view.py —— 水平极坐标 + 垂直剖面 交互式状态浏览�
     - 入侵者位置: 极坐标 (Range, Bearing), Bearing 0=正前方, 左负右正
     - 入侵者机头方向: Rel_Heading 相对本机机头旋转, 0=同向, ±180=对头, ±90=交叉
     - 速度箭头一律等长(只表达方向/机动意图), 具体速度看机旁数值文字
+    - 速度与垂直率统一使用 fps 单位显示(机旁标注与右侧状态栏均不再换算 kt)
+    - 水平俯视图只画 位置 / 航向 / 速度 / 转向示意, 不再标注相对高度与 τ
+      (相对高度看右侧垂直剖面纵轴; τ 仅参与风险等级判定, 不在图上显示)
     - 垂直态势图(水平态势右侧): 横轴=水平距离 Range, 纵轴=相对高度 Rel_Alt;
       入侵者的升降箭头等长(只表示升/降方向), 具体垂直率看旁注数值文字;
       本机不画方向箭头, 本机垂直率仅以 "本机 Vz" 旁注文字表达
@@ -146,6 +149,7 @@ FIELD_ALIAS = {
 
 KTS_TO_FPS = 1.68781
 FPS_TO_KTS = 1.0 / KTS_TO_FPS
+# 注: 界面(机旁标注 + 右侧状态栏)统一显示 fps, 上面两个换算常数仅作参考/后续扩展用
 
 
 # ---------------- 基础工具 ----------------
@@ -501,7 +505,7 @@ class PolarStateViewer(object):
             self.axo.text(
                 lx[0],
                 lx[1],
-                f"本机 {own_spd:.0f} fps ({own_spd * FPS_TO_KTS:.0f} kt)",
+                f"本机 {own_spd:.0f} fps",
                 color=OWN_COLOR,
                 fontsize=10.5,
                 fontweight="bold",
@@ -531,7 +535,7 @@ class PolarStateViewer(object):
             self.axo.text(
                 lx2[0],
                 lx2[1],
-                f"入侵者 {int_spd:.0f} fps ({int_spd * FPS_TO_KTS:.0f} kt)",
+                f"入侵者 {int_spd:.0f} fps",
                 color=INT_COLOR,
                 fontsize=10.5,
                 fontweight="bold",
@@ -570,23 +574,6 @@ class PolarStateViewer(object):
         h = row["h"]
         if h in (2, 3):
             self._draw_turn_arc(h, H_COLORS[h], own_fr)
-
-        # ---- 相对高度 / τ 附注 ----
-        z = row["Rel_Altitude(ft)"]
-        tau = row["Tau(s)"]
-        tau_txt = "∞" if math.isinf(tau) else f"{tau:.0f} s"
-        note = f"相对高度 {z:+.0f} ft · τ = {tau_txt}"
-        self.axo.text(
-            0.5,
-            0.03,
-            note,
-            transform=self.axo.transAxes,
-            ha="center",
-            va="center",
-            fontsize=10,
-            color="#333333",
-            bbox=dict(fc="white", ec="#999999", alpha=0.9, boxstyle="round,pad=0.4"),
-        )
 
     def _draw_vertical(self, row):
         """垂直态势
@@ -825,9 +812,6 @@ class PolarStateViewer(object):
         psi = row["Rel_Heading(deg)"]
         int_spd = row["Intruder_Speed(fps)"]
         own_spd = row["Own_Speed(fps)"]
-        own_dz = row["Own_Vert_Rate(fps)"]
-        int_dz = row["Int_Vert_Rate(fps)"]
-        tau = row["Tau(s)"]
         h, v = row["h"], row["v"]
 
         line("◆ 当前状态 / 本机动作", size=15, color="#0D47A1", weight="bold", dy=0.042)
@@ -844,12 +828,8 @@ class PolarStateViewer(object):
         kv("相对高度 Rel_Alt", f"{z:+,.0f} ft = {z * 0.3048:+,.0f} m")
         kv("方位 Bearing", f"{b:.0f}°  ({bearing_name(b)})")
         kv("相对航向 Rel_Heading", f"{psi:.0f}°  ({heading_name(psi)})")
-        kv("本机速度 Own_Spd", f"{own_spd:.0f} fps = {own_spd * FPS_TO_KTS:.0f} kt")
-        kv("入侵者速度 Int_Spd", f"{int_spd:.0f} fps = {int_spd * FPS_TO_KTS:.0f} kt")
-        kv("本机垂直率 Own_Vz", f"{own_dz:+.0f} fps")
-        kv("入侵者垂直率 Int_Vz", f"{int_dz:+.0f} fps")
-        tau_txt = "∞ (远离中)" if math.isinf(tau) else f"{tau:.1f} s"
-        kv("到达时间 τ", tau_txt)
+        kv("本机速度 Own_Spd", f"{own_spd:.0f} fps")
+        kv("入侵者速度 Int_Spd", f"{int_spd:.0f} fps")
         blank(0.006)
 
         line(
