@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from encounter_3d_demo import (ActionTable,Config,DEFAULT_TABLE,
-    build_encounter,intruder_actual,plan_route)
+    build_encounter,intruder_actual,plan_route,route_candidate,bump)
 
 
 class DemoTests(unittest.TestCase):
@@ -61,6 +61,47 @@ class DemoTests(unittest.TestCase):
         result=table.query(np.array([0,0,1000.]),np.array([0,6000,1000.]),self.config)
         self.assertIsNone(result.action)
         self.assertFalse(result.maneuver)
+
+    def test_return_is_tangent_and_curvature_matches_original_line(self):
+        r,c=self.data.route,self.config
+        index=np.argmin(np.abs(r.time-r.rejoin_time))
+        np.testing.assert_allclose(r.velocity[index,[0,2]],0,atol=1e-12)
+        self.assertGreater(r.velocity[index,1],0)
+        peak_y=float(np.interp(r.peak_time,r.time,r.xyz[:,1]))
+        return_y=float(np.interp(r.return_time,r.time,r.xyz[:,1]))
+        value,first,second=bump(np.array([r.rejoin_y]),r.xyz[0,1],peak_y,return_y,r.rejoin_y)
+        np.testing.assert_allclose([value,first,second],0,atol=1e-12)
+        # Verify the interpolated, displayed path approaches that same tangent.
+        p=r.positions([r.rejoin_time-.01,r.rejoin_time,r.rejoin_time+.01],c)
+        direction=p[1]-p[0]
+        self.assertLess(np.linalg.norm(direction[[0,2]])/direction[1],1e-6)
+        np.testing.assert_allclose(p[2,[0,2]],[0,c.altitude],atol=1e-10)
+
+    def test_search_prioritizes_smaller_lateral_deviation(self):
+        r,c=self.data.route,self.config
+        fixed=route_candidate(c,r.trigger_time,r.action,600,220,700,1800)
+        self.assertGreater(r.feasible_candidates,1)
+        self.assertGreater(np.max(np.abs(r.xyz[:,0])),0)
+        self.assertLessEqual(np.max(np.abs(r.xyz[:,0])),200)
+        self.assertLessEqual(np.max(np.abs(r.xyz[:,2]-c.altitude)),150)
+        self.assertLess(np.max(np.abs(r.xyz[:,0])),np.max(np.abs(fixed.xyz[:,0])))
+
+    def test_plan_and_join_remain_fixed_during_playback(self):
+        r,c=self.data.route,self.config
+        expected=r.xyz.copy()
+        join=r.rejoin_y
+        for t in np.linspace(r.trigger_time,r.time[-1],30):
+            plan,join_y=r.planned_view(float(t),c)
+            np.testing.assert_array_equal(plan,expected)
+            self.assertEqual(join_y,join)
+        self.assertEqual(self.data.report()['planning_runs'],1)
+
+    def test_build_selects_complete_route_only_once(self):
+        from unittest.mock import patch
+        with patch('encounter_3d_demo.plan_route',wraps=plan_route) as planner:
+            data=build_encounter(self.table,self.config)
+            self.assertEqual(planner.call_count,1)
+            np.testing.assert_array_equal(data.route.xyz,self.data.route.xyz)
 
     def test_left_descending_path_returns_without_crossing_ground(self):
         r=plan_route(self.config,6.3,(3,5))
