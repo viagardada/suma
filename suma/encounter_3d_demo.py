@@ -251,7 +251,9 @@ def route_candidate(
         raise ValueError("建议出现太晚，剩余航程不足以演示避让和归航")
     peak = start + min(available * 0.28, max(700.0, cpa_y - start))
     return_start = max(peak + hold_distance, cpa_y + 300)
-    rejoin = return_start + return_distance
+    # Extend the return toward the destination instead of rejoining early.
+    # The existing end-of-route margin and full-path checks still apply.
+    rejoin = max(return_start + return_distance, config.destination * .90)
     if rejoin > config.destination - 600:
         return None
     if not start < peak < return_start < rejoin < config.destination:
