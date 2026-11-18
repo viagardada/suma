@@ -44,7 +44,7 @@ class Config:
     dt: float = 0.1
     max_turn_rate: float = 3.0  # deg/s
     max_vertical_rate: float = 16.667  # ft/s
-    horizontal_margin: float = 300.0  # demonstration criteria, not ACAS thresholds
+    horizontal_margin: float = 25.0 / .3048  # 25 m demonstration criterion, not ACAS thresholds
     vertical_margin: float = 100.0
 
     def validate(self):
@@ -301,8 +301,8 @@ def route_candidate(
 
 
 def plan_route(config, trigger, action):
-    horizontal = [50, 100, 150, 200, 300, 400, 500, 600, 800, 1000] if action[0] in (2, 3) else [0]
-    vertical = [100, 120, 150, 180, 200, 220, 300, 400] if action[1] in (4, 5, 6, 7) else [0]
+    horizontal = [30.0 / .3048] if action[0] in (2, 3) else [0]
+    vertical = [10.0 / .3048] if action[1] in (4, 5, 6, 7) else [0]
     candidates = []
     for lateral in horizontal:
         for height in vertical:
@@ -562,34 +562,6 @@ class DemoViewer:
             color="#60738B",
             va="top",
         )
-        self.chart = self.fig.add_axes([0.77, 0.23, 0.205, 0.16], facecolor="white")
-        self.chart.plot(
-            data.time,
-            np.linalg.norm(data.own - data.intruder, axis=1),
-            color=BLUE,
-            lw=1.6,
-            label="实飞",
-        )
-        self.chart.plot(
-            data.time,
-            np.linalg.norm(data.hypothetical - data.intruder, axis=1),
-            color=GREEN,
-            lw=1.8,
-            ls="--",
-            label="假想",
-        )
-        encounter_end = min(data.time[-1], c.intruder_distance / (2 * c.speed) + 20)
-        self.chart.set(
-            xlim=(0, encounter_end),
-            ylim=(0, min(6500, c.intruder_distance + 500)),
-            ylabel="两机三维间距 (ft)",
-            xlabel="相遇阶段时间 (s)",
-        )
-        self.chart.tick_params(labelsize=8)
-        self.chart.grid(alpha=0.18)
-        self.chart.legend(fontsize=8, loc="upper right", frameon=False)
-        self.chart.axvline(c.intruder_distance / (2 * c.speed), ls=":", color=RED, lw=1)
-        self.chart_cursor = self.chart.axvline(0, color="#17314B", lw=1.3)
         self.fig.text(0.06, 0.14, "时间", fontsize=11, color="#40536A")
         self.slider = Slider(
             self.fig.add_axes([0.11, 0.137, 0.76, 0.02]),
@@ -696,8 +668,6 @@ class DemoViewer:
             f"实际本机高度  {own[2]:,.0f} ft\n假想本机高度  {hypothetical[2]:,.0f} ft"
         )
         self.phase_text.set_text(r.phase(self.t))
-        self.chart_cursor.set_xdata([self.t, self.t])
-        self.chart_cursor.set_visible(self.t <= self.chart.get_xlim()[1])
         self.setting_slider = True
         self.slider.set_val(self.t)
         self.setting_slider = False

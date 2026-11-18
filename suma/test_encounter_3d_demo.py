@@ -82,8 +82,8 @@ class DemoTests(unittest.TestCase):
         fixed=route_candidate(c,r.trigger_time,r.action,600,220,700,1800)
         self.assertGreater(r.feasible_candidates,1)
         self.assertGreater(np.max(np.abs(r.xyz[:,0])),0)
-        self.assertLessEqual(np.max(np.abs(r.xyz[:,0])),200)
-        self.assertLessEqual(np.max(np.abs(r.xyz[:,2]-c.altitude)),150)
+        self.assertAlmostEqual(np.max(np.abs(r.xyz[:,0]))*.3048,30,places=6)
+        self.assertAlmostEqual(np.max(np.abs(r.xyz[:,2]-c.altitude))*.3048,10,places=6)
         self.assertLess(np.max(np.abs(r.xyz[:,0])),np.max(np.abs(fixed.xyz[:,0])))
 
     def test_plan_and_join_remain_fixed_during_playback(self):
